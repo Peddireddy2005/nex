@@ -1,0 +1,1 @@
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS email_verified boolean NOT NULL DEFAULT false;
