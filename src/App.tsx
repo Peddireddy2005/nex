@@ -1,76 +1,57 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
-import { ThemeProvider } from "next-themes";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import DashboardLayout from "@/components/DashboardLayout";
-import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
-import TasksPage from "./pages/TasksPage";
-import MessagesPage from "./pages/MessagesPage";
-import TeamPage from "./pages/TeamPage";
-import PerformancePage from "./pages/PerformancePage";
-import SchedulerPage from "./pages/SchedulerPage";
-import SettingsPage from "./pages/SettingsPage";
-import InvitePage from "./pages/InvitePage";
-import SessionManagementPage from "./pages/SessionManagementPage";
-import ActiveUsersPage from "./pages/ActiveUsersPage";
-import ClientsPage from "./pages/ClientsPage";
-import ProjectsPage from "./pages/ProjectsPage";
-import ProjectDetailPage from "./pages/ProjectDetailPage";
-import TaskDocumentsPage from "./pages/TaskDocumentsPage";
-import NotFound from "./pages/NotFound";
+import { Suspense, lazy } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner";
+// Home is kept as a static import since it's the most common entry point.
+import Home from "./pages/Home";
+// Every other route is code-split so mobile users landing on "/" only
+// download Home's JS instead of the whole site's JS up front.
+const Services = lazy(() => import("./pages/Services"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Support = lazy(() => import("./pages/Support"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Booking = lazy(() => import("./pages/Booking"));
+const Careers = lazy(() => import("./pages/Careers"));
+const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
+const Apply = lazy(() => import("./pages/Apply"));
+// Visual & Conversion widgets
+import SmoothScroll from "./components/SmoothScroll";
+import StickyCTA from "./components/StickyCTA";
+import ScrollToTop from "./components/ScrollToTop";
+import ChatWidget from "./components/ChatWidget";
 
-const queryClient = new QueryClient();
+function RouteFallback() {
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center">
+      <div className="w-8 h-8 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+    </div>
+  );
+}
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <TooltipProvider>
-        <ErrorBoundary>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AuthProvider>
-              <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/invite" element={<InvitePage />} />
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route element={<DashboardLayout />}>
-                  <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/tasks" element={<TasksPage />} />
-                  <Route path="/messages" element={<MessagesPage />} />
-                  <Route path="/team" element={<TeamPage />} />
-                  <Route path="/performance" element={<PerformancePage />} />
-                  <Route path="/scheduler" element={<SchedulerPage />} />
-                  <Route path="/clients" element={<ClientsPage />} />
-                  <Route path="/projects" element={<ProjectsPage />} />
-                  <Route path="/projects/:id" element={<ProjectDetailPage />} />
-                  <Route path="/tasks/:taskId/documents" element={<TaskDocumentsPage />} />
-                  {/* Redirects for removed pages */}
-                  <Route path="/ai-center" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/docs" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/goals" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/time-tracking" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/automations" element={<Navigate to="/projects" replace />} />
-                  <Route path="/errors" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/onboarding" element={<Navigate to="/team" replace />} />
-                  <Route path="/notifications" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="/sessions" element={<SessionManagementPage />} />
-                  <Route path="/active-users" element={<ActiveUsersPage />} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AuthProvider>
-          </BrowserRouter>
-        </ErrorBoundary>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
-
-export default App;
+export default function App() {
+  return (
+    <Router>
+      <SmoothScroll>
+        <ScrollToTop />
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/services/:serviceId" element={<ServiceDetail />} />
+            <Route path="/careers" element={<Careers />} />
+            <Route path="/apply" element={<Apply />} />
+            <Route path="/book" element={<Booking />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/support" element={<Support />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </Suspense>
+        <StickyCTA />
+      </SmoothScroll>
+      <Toaster />
+      <ChatWidget />
+    </Router>
+  );
+}
