@@ -46,12 +46,31 @@
   * {
     @apply border-border;
   }
+  html {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary font-sans;
     overflow-x: hidden;
+    /* Prevent iOS from zooming the page in on double-tap over interactive
+       elements, which felt like a bug on mobile given the layout wasn't
+       designed to be zoomed. */
+    touch-action: manipulation;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply text-slate-900 font-display font-bold not-italic tracking-tight;
+  }
+  /* iOS Safari zooms the page when focusing an <input>/<textarea> with a
+     font-size under 16px. Force 16px on small screens so forms (contact,
+     apply, spin-to-win, chat) don't trigger an unwanted zoom-in. */
+  @media (max-width: 640px) {
+    input,
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
   }
 }
 
@@ -207,4 +226,3 @@
 .group:hover .group-hover-wiggle {
   animation: wiggle 0.5s ease-in-out infinite;
 }
-
