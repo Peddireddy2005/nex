@@ -152,6 +152,19 @@
     font-weight: 400;
   }
 
+  /* Dedicated navbar background — intentionally NOT included in the
+     mobile glass-translucency override below. The nav needs to stay
+     legible/opaque over scrolling page content (hero video, images,
+     text) at every viewport size, which is why it's a separate class
+     from .liquid-glass instead of reusing it. */
+  .nxb-nav-glass {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border: 1px solid rgba(9, 13, 31, 0.08) !important;
+    box-shadow: 0 6px 20px -4px rgba(9, 13, 31, 0.06) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
   @media (max-width: 768px) {
     .glass {
       background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
@@ -162,6 +175,8 @@
     .liquid-glass {
       background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
     }
+    /* .nxb-nav-glass deliberately stays out of this block so the
+       navbar remains solid/opaque on mobile. */
   }
 }
 

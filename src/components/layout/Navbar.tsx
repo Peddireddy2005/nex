@@ -58,7 +58,11 @@ export default function Navbar({
           : "relative"
       } w-full z-50 px-4 md:px-8 pt-4 pointer-events-none select-none`}
     >
-      <nav className="max-w-6xl mx-auto liquid-glass rounded-full py-2.5 px-4 sm:px-6 transition-all duration-300 pointer-events-auto flex items-center justify-between gap-4">
+      {/* nxb-nav-glass: a dedicated, always-opaque background (see index.css)
+          — intentionally NOT the shared .liquid-glass class, which is made
+          translucent on screens under 768px for other cards. The nav needs
+          to stay solid/legible over scrolling hero content on mobile. */}
+      <nav className="max-w-6xl mx-auto nxb-nav-glass rounded-full py-2.5 px-4 sm:px-6 transition-all duration-300 pointer-events-auto flex items-center justify-between gap-4">
         
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 sm:gap-3 group shrink-0">
@@ -141,6 +145,9 @@ export default function Navbar({
             className="absolute inset-0 bg-black/20 backdrop-blur-[2px]"
             onClick={() => setIsOpen(false)}
           />
+          {/* Solid opaque panel — bg-white/95 with backdrop-blur already
+              renders fully legible; not affected by the .liquid-glass
+              mobile override since it doesn't use that class. */}
           <div
             className="relative mx-4 mt-3 bg-white/95 backdrop-blur-xl border border-slate-200/60 p-6 rounded-3xl shadow-2xl transition-all duration-300 max-h-[calc(100vh-110px)] overflow-y-auto"
             style={{ marginBottom: "max(1rem, env(safe-area-inset-bottom, 0px))" }}
