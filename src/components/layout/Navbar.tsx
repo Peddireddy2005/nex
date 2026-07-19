@@ -149,7 +149,7 @@ export default function Navbar({
               renders fully legible; not affected by the .liquid-glass
               mobile override since it doesn't use that class. */}
           <div
-            className="relative mx-4 mt-3 bg-white backdrop-blur-xl border border-slate-200/60 p-6 rounded-3xl shadow-2xl transition-all duration-300 max-h-[calc(100vh-110px)] overflow-y-auto"
+            className="relative mx-4 mt-3 bg-white/95 backdrop-blur-xl border border-slate-200/60 p-6 rounded-3xl shadow-2xl transition-all duration-300 max-h-[calc(100vh-110px)] overflow-y-auto"
             style={{ marginBottom: "max(1rem, env(safe-area-inset-bottom, 0px))" }}
           >
             <div className="flex flex-col gap-4">
