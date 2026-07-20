@@ -330,7 +330,7 @@ ctx.restore();
           can't be dragged since body scroll is locked while open. */}
       <div style={{
         position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)",
-        zIndex: 9997, display: "flex",
+        zIndex: 10000, display: "flex",
         alignItems: isMobile ? "flex-start" : "center",
         justifyContent: "center",
         padding: 12,
