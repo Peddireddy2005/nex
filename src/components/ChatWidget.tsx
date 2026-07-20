@@ -4,7 +4,6 @@ const CHATBOT_URL = "https://nexubotics-chatbot.vercel.app/";
 
 export default function ChatWidget() {
   const [expanded, setExpanded] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
@@ -16,16 +15,6 @@ export default function ChatWidget() {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 640);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-
-  const collapsedWidth = isMobile ? "88px" : "130px";
-  const collapsedHeight = isMobile ? "88px" : "180px";
-
   return (
     <iframe
       src={CHATBOT_URL}
@@ -35,11 +24,18 @@ export default function ChatWidget() {
         position: "fixed",
         bottom: "env(safe-area-inset-bottom, 0px)",
         right: "env(safe-area-inset-right, 0px)",
-        width: expanded ? "min(450px, 100vw)" : collapsedWidth,
+        // NOTE: this iframe is a third-party origin (nexubotics-chatbot.vercel.app).
+        // Its internal bubble/icon layout is designed around this exact
+        // 130x180 collapsed footprint — shrinking the outer iframe on mobile
+        // (e.g. to 88x88) clips or hides that internal content since we
+        // can't control the cross-origin page's own CSS. Keep this size
+        // fixed across all breakpoints so the chat bubble stays visible
+        // and tappable on phones, matching desktop behavior.
+        width: expanded ? "min(450px, 100vw)" : "130px",
         // Cap expanded height so it never fully covers a short mobile
         // viewport (a fixed 770px hid the page and the widget's own
         // close control on phones).
-        height: expanded ? "min(770px, calc(100vh - 24px))" : collapsedHeight,
+        height: expanded ? "min(770px, calc(100vh - 24px))" : "180px",
         maxWidth: "100vw",
         maxHeight: "100vh",
         border: "none",

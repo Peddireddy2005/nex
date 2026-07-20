@@ -311,19 +311,27 @@ That's it! Everything is fully managed by our operations team.`;
                     onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
                     className="flex items-center gap-2 bg-white/70 border border-slate-200/40 rounded-xl p-1.5 shadow-sm backdrop-blur-sm"
                   >
+                    {/* This field is intentionally a fixed demo prompt (readOnly) —
+                        tapping Send always tries the same canned question so the
+                        reply is predictable. text-slate-900 (not a muted/greyed
+                        tone) plus a visible cursor keeps it from reading as a
+                        broken/disabled input on mobile. */}
                     <input 
                       type="text" 
                       value={inputText}
                       readOnly
+                      aria-label="Demo question (tap Send to try it)"
                       placeholder="Ask how do i use this..."
-                      className="flex-1 bg-transparent border-none text-xs outline-none px-2 py-1.5 text-slate-900 font-semibold cursor-default"
+                      className="flex-1 bg-transparent border-none text-xs sm:text-sm outline-none px-2 py-2 text-slate-900 font-semibold cursor-pointer"
+                      onClick={() => !isTyping && handleSendMessage()}
                     />
                     <button 
                       type="submit"
                       disabled={isTyping}
-                      className="w-8 h-8 rounded-lg bg-primary hover:opacity-90 disabled:opacity-50 text-white flex items-center justify-center transition-all cursor-pointer border-none"
+                      aria-label="Send message"
+                      className="h-11 w-11 shrink-0 rounded-lg bg-primary hover:opacity-90 active:scale-95 disabled:opacity-50 text-white flex items-center justify-center transition-all cursor-pointer border-none"
                     >
-                      <Send className="w-3.5 h-3.5 text-white" />
+                      <Send className="w-4 h-4 text-white" />
                     </button>
                   </form>
                 </div>
