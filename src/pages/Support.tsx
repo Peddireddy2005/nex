@@ -222,7 +222,7 @@ export default function Support() {
               </div>
 
               {/* Integrated Chat Window */}
-              <div className="rounded-3xl relative overflow-hidden flex flex-col h-[560px] w-full shadow-xl bg-white border border-slate-200/60">
+              <div className="rounded-3xl relative overflow-hidden flex flex-col h-[500px] sm:h-[560px] max-h-[75vh] w-full shadow-xl bg-white border border-slate-200/60">
                 {/* Header */}
                 <div className="bg-[#0b1c3d] px-5 py-4 flex items-center gap-3 shrink-0">
                   <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
@@ -232,7 +232,7 @@ export default function Support() {
                 </div>
 
                 {/* Message thread */}
-                <div className="flex-1 p-5 overflow-y-auto bg-slate-50/40">
+                <div className="flex-1 min-h-0 p-5 overflow-y-auto overscroll-contain bg-slate-50/40">
                   <div className="space-y-4 pb-2">
                     {messages.map((msg, i) => (
                       <div key={i} className={`flex gap-2.5 ${msg.sender === "user" ? "flex-row-reverse" : ""}`}>
@@ -260,7 +260,7 @@ export default function Support() {
                           )}
 
                           {msg.sender === "bot" && msg.text.includes(SUPPORT_EMAIL) && (
-                            <a
+                            
                               href={`mailto:${SUPPORT_EMAIL}`}
                               className="mt-3 flex items-center justify-center gap-2 bg-primary text-white p-2.5 rounded-lg text-xs font-bold hover:bg-primary/95 transition-colors shadow-md border-none cursor-pointer"
                             >
@@ -269,7 +269,7 @@ export default function Support() {
                           )}
 
                           {msg.sender === "bot" && msg.text.includes("WhatsApp") && (
-                            <a
+                            
                               href="https://wa.me/917829527825"
                               target="_blank"
                               rel="noreferrer"

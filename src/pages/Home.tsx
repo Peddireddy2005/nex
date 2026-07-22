@@ -319,7 +319,7 @@ export default function Home() {
               transition={{ duration: 0.7, ease: "easeOut" }}
               className="max-w-[400px] w-full"
             >
-              <div className="rounded-[28px] relative overflow-hidden flex flex-col h-[520px] w-full z-10 shadow-2xl bg-white border border-slate-200/60">
+              <div className="rounded-[28px] relative overflow-hidden flex flex-col h-[480px] sm:h-[520px] max-h-[75vh] w-full z-10 shadow-2xl bg-white border border-slate-200/60">
                 {/* Header */}
                 <div className="bg-[#0b1c3d] px-5 py-4 flex items-center gap-3 shrink-0">
                   <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
@@ -329,7 +329,7 @@ export default function Home() {
                 </div>
 
                 {/* Message thread */}
-                <div className="flex-1 overflow-y-auto p-5 space-y-4 text-left flex flex-col min-h-0 bg-slate-50/40">
+                <div className="flex-1 overflow-y-auto overscroll-contain p-5 space-y-4 text-left flex flex-col min-h-0 bg-slate-50/40">
                   {messages.map((msg, i) => (
                     <div key={i} className={`flex gap-2.5 ${msg.sender === "user" ? "flex-row-reverse" : ""}`}>
                       {msg.sender === "bot" && (
