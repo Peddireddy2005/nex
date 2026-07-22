@@ -28,7 +28,6 @@ import {
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import useSEO from "../hooks/useSEO";
-import SpinToWinModal from '../components/SpinToWinModal';
 
 const INDUSTRIES_DATA = [
   {
@@ -145,6 +144,12 @@ That's it! Everything is fully managed by our operations team.`;
     }, 1250);
   };
 
+  // Opens the REAL live chatbot (the widget floating bottom-right on every
+  // page), instead of the scripted demo above.
+  const openLiveChat = () => {
+    window.dispatchEvent(new CustomEvent("nexubotics:open-chat"));
+  };
+
   const FEATURES_DATA = [
     {
       title: "ChatbotBuilder",
@@ -178,7 +183,6 @@ That's it! Everything is fully managed by our operations team.`;
       <div className="absolute bottom-[20%] left-1/3 w-[700px] h-[700px] bg-purple-500/2 blur-[160px] pointer-events-none rounded-full" />
 
       <Navbar />
-      <SpinToWinModal />
 
       {/* Hero Section */}
       <section className="relative pt-32 md:pt-40 pb-28 px-6 overflow-hidden border-b border-slate-200/50 bg-slate-50/50">
@@ -266,7 +270,7 @@ That's it! Everything is fully managed by our operations team.`;
                     </div>
                     <div className="text-left">
                       <span className="font-extrabold text-sm text-slate-900 block">Nexubotics</span>
-                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Live Support Agent</span>
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Demo Assistant</span>
                     </div>
                   </div>
                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
@@ -316,6 +320,17 @@ That's it! Everything is fully managed by our operations team.`;
                   </form>
                 </div>
               </div>
+
+              <p className="text-center text-[10px] text-slate-400 font-semibold mt-3">
+                This is a scripted demo. Want a real person or our live bot?{" "}
+                <button
+                  type="button"
+                  onClick={openLiveChat}
+                  className="text-primary font-bold hover:underline cursor-pointer bg-transparent border-none p-0"
+                >
+                  Chat with the live support agent →
+                </button>
+              </p>
             </motion.div>
           </div>
         </div>
@@ -649,4 +664,4 @@ That's it! Everything is fully managed by our operations team.`;
       <Footer />
     </div>
   );
-    }
+}

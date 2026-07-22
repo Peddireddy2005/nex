@@ -6,12 +6,10 @@ import Pricing from "./pages/Pricing";
 import Support from "./pages/Support";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
-// PRD public additions
 import Booking from "./pages/Booking";
 import Careers from "./pages/Careers";
 import ServiceDetail from "./pages/ServiceDetail";
 import Apply from "./pages/Apply";
-// Visual & Conversion widgets
 import SmoothScroll from "./components/SmoothScroll";
 import StickyCTA from "./components/StickyCTA";
 import ScrollToTop from "./components/ScrollToTop";
@@ -40,8 +38,6 @@ export default function App() {
       </SmoothScroll>
       <Toaster />
       <ChatWidget />
-      {/* Mounted once at the app root so it does NOT reset/reload every
-          time you navigate back to the Home page. */}
       <SpinToWinModal />
     </Router>
   );

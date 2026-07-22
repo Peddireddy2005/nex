@@ -63,10 +63,6 @@ export default function SpinToWinModal() {
 
   const lenisRef = useLenis();
 
-  // Lock the page scroll while the modal is open. Locking body overflow alone
-  // is NOT enough because this site uses Lenis for smooth-scroll, which
-  // scrolls independently of native browser scroll and ignores
-  // `overflow: hidden` on the body. We have to explicitly stop/start Lenis.
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add("overflow-locked");
@@ -90,7 +86,7 @@ export default function SpinToWinModal() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  const wheelSize = isMobile ? (isTiny ? 180 : 220) : 320;
+  const wheelSize = isMobile ? (isTiny ? 180 : 220) : 300;
 
   const drawWheel = (angle: number) => {
     const canvas = canvasRef.current;
@@ -346,7 +342,7 @@ export default function SpinToWinModal() {
   const wheelBlock = (
     <div style={{
       display:"flex", alignItems:"center", justifyContent:"center",
-      padding: isMobile ? (isTiny ? "18px 16px 4px" : "22px 16px 6px") : "30px 20px",
+      padding: isMobile ? (isTiny ? "18px 16px 4px" : "22px 16px 6px") : "40px 36px",
       flexShrink:0,
     }}>
       <div style={{ position:"relative", width:wheelSize, height:wheelSize }}>
@@ -379,23 +375,23 @@ export default function SpinToWinModal() {
   const formBlock = (
     <div style={{
       flex:1, minWidth:0,
-      padding: isMobile ? (isTiny ? "0 18px 20px" : "0 20px 24px") : "40px 36px 40px 20px",
+      padding: isMobile ? (isTiny ? "0 18px 20px" : "0 20px 24px") : "44px 44px 44px 12px",
       display:"flex", flexDirection:"column", justifyContent:"center",
       position:"relative",
     }}>
       <Stars />
 
-      <div style={{ display:"inline-flex", alignItems:"center", gap:6, background:"rgba(0,198,255,.08)", border:"1px solid rgba(0,198,255,.2)", color:"#7dd3fc", fontSize:10, fontWeight:600, padding:"4px 11px", borderRadius:20, letterSpacing:".7px", textTransform:"uppercase", marginBottom:isMobile?8:12, width:"fit-content" }}>✦ Aura Rewards</div>
+      <div style={{ display:"inline-flex", alignItems:"center", gap:6, background:"rgba(0,198,255,.08)", border:"1px solid rgba(0,198,255,.2)", color:"#7dd3fc", fontSize:10, fontWeight:600, padding:"4px 11px", borderRadius:20, letterSpacing:".7px", textTransform:"uppercase", marginBottom:isMobile?8:14, width:"fit-content" }}>✦ Aura Rewards</div>
 
-      <h1 style={{ fontFamily:"Syne,sans-serif", fontSize:isMobile?22:34, fontWeight:800, color:"#f0f8ff", lineHeight:1.1, margin:"0 0 6px", letterSpacing:"-.5px" }}>
+      <h1 style={{ fontFamily:"Syne,sans-serif", fontSize:isMobile?22:32, fontWeight:800, color:"#f0f8ff", lineHeight:1.15, margin:"0 0 8px", letterSpacing:"-.5px" }}>
         Spin to <span style={{ background:"linear-gradient(90deg,#00c6ff,#6d5aff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Win Big!</span>
       </h1>
-      <p style={{ fontSize:12, color:"#3f5a7a", margin:"0 0 14px", lineHeight:1.6 }}>
+      <p style={{ fontSize:12, color:"#3f5a7a", margin:"0 0 16px", lineHeight:1.6 }}>
         Enter your details, then spin the wheel for an exclusive Nexubotics reward.
       </p>
 
       {formError && (
-        <div style={{ marginBottom:10, padding:"9px 12px", borderRadius:8, background:"rgba(239,68,68,.1)", border:"1px solid rgba(239,68,68,.3)", color:"#fca5a5", fontSize:12 }}>
+        <div style={{ marginBottom:12, padding:"9px 12px", borderRadius:8, background:"rgba(239,68,68,.1)", border:"1px solid rgba(239,68,68,.3)", color:"#fca5a5", fontSize:12 }}>
           {formError}
         </div>
       )}
@@ -405,7 +401,7 @@ export default function SpinToWinModal() {
         { label:"Phone Number", type:"tel", value:phone, set:setPhone, err:phoneErr, setErr:setPhoneErr, placeholder:"+91 99999 99999" },
         { label:"Email Address", type:"email", value:email, set:setEmail, err:emailErr, setErr:setEmailErr, placeholder:"krish@nexubotics.com", extra:() => setFormError("") },
       ].map(({ label, type, value, set, err, setErr, placeholder, extra }) => (
-        <div key={label} style={{ marginBottom:10 }}>
+        <div key={label} style={{ marginBottom:12 }}>
           <label style={{ fontSize:10, color:"#4b6480", textTransform:"uppercase", letterSpacing:".7px", fontWeight:600, marginBottom:5, display:"block" }}>{label}</label>
           <input type={type} value={value}
             onChange={e => { set(e.target.value); setErr(false); extra?.(); }}
@@ -414,8 +410,8 @@ export default function SpinToWinModal() {
         </div>
       ))}
 
-      <p style={{ fontSize:10, color:"#4b6480", textTransform:"uppercase", letterSpacing:".7px", fontWeight:600, margin:"0 0 8px" }}>Services you're interested in</p>
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"7px 12px", marginBottom:16 }}>
+      <p style={{ fontSize:10, color:"#4b6480", textTransform:"uppercase", letterSpacing:".7px", fontWeight:600, margin:"0 0 10px" }}>Services you're interested in</p>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px 14px", marginBottom:20 }}>
         {["Chatbot","Calling Agent","Lead Generation","Automation","Custom","Nothing Specific"].map(s => (
           <label key={s} style={{ display:"flex", alignItems:"center", gap:8, fontSize:12.5, color:"#6a8aaa", cursor:"pointer", userSelect:"none" }}>
             <input type="checkbox" checked={services.includes(s)} onChange={() => toggleService(s)}
@@ -440,7 +436,7 @@ export default function SpinToWinModal() {
   );
 
   const formView = (
-    <div style={{ display:"flex", flexDirection: isMobile ? "column" : "row" }}>
+    <div style={{ display:"flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 0 : 8, alignItems: isMobile ? undefined : "center" }}>
       {wheelBlock}
       {formBlock}
     </div>
@@ -501,22 +497,23 @@ export default function SpinToWinModal() {
           {view === "success" ? successView : formView}
         </div>
       ) : (
-        /* ══════════ DESKTOP: unchanged from before ══════════ */
+        /* ══════════ DESKTOP: wider, viewport-based sizing so it never
+           feels cramped regardless of window/height ratio ══════════ */
         <div style={{
           position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)",
           zIndex: MODAL_Z_INDEX, display: "flex", alignItems: "center", justifyContent: "center",
-          padding: 12,
+          padding: 16,
         }}>
           <div style={{
             background: "conic-gradient(from 180deg,#00c6ff,#6d5aff,#ff3cac,#00c6ff)",
             padding: 2, borderRadius: 22,
             boxShadow: "0 0 60px rgba(0,198,255,.25),0 0 120px rgba(109,90,255,.15)",
-            width: "100%", maxWidth: "calc(100dvh - 28px)",
-            maxHeight: "calc(100vdh - 28px)",
+            width: "100%", maxWidth: "min(960px, 94vw)",
+            maxHeight: "min(760px, 92vh)",
           }}>
             <div style={{
               background: "#0b1628", borderRadius: 20,
-              width: "100%", maxHeight: "calc(100vh - 28px)",
+              width: "100%", maxHeight: "min(756px, 92vh)",
               overflowY: "auto", overflowX: "hidden",
               position: "relative",
             }}>

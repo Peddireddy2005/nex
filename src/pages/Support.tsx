@@ -24,10 +24,8 @@ export default function Support() {
   ]);
   const [chatInput, setChatInput] = useState("");
   const [isChatLoading, setIsChatLoading] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  
+
   const mainMessagesEndRef = useRef<HTMLDivElement>(null);
-  const floatingMessagesEndRef = useRef<HTMLDivElement>(null);
 
   // Form states for contact form
   const [contactName, setContactName] = useState("");
@@ -52,13 +50,11 @@ useEffect(() => {
   mainMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 }, [messages, isChatLoading]);
 
-  useEffect(() => {
-    if (isChatOpen) {
-      setTimeout(() => {
-        floatingMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
-    }
-  }, [messages, isChatLoading, isChatOpen]);
+  // Opens the REAL live chatbot (floating bottom-right on every page)
+  // instead of the FAQ-style assistant below.
+  const openLiveChat = () => {
+    window.dispatchEvent(new CustomEvent("nexubotics:open-chat"));
+  };
 
   // Purely client-side smart auto-replies for virtual assistant
   const handleChatSubmit = (e: React.FormEvent) => {
@@ -202,8 +198,15 @@ useEffect(() => {
                   <span className="text-brand-gradient">Consoles.</span>
                 </h1>
                 <p className="text-slate-600 text-sm md:text-base leading-relaxed max-w-lg font-normal">
-                  Ask our virtual assistant anything about the Nexubotics platform, workflows, integration capabilities, or custom deployment parameters.
+                  Ask our FAQ assistant anything about the Nexubotics platform, workflows, integration capabilities, or custom deployment parameters.
                 </p>
+                <button
+                  type="button"
+                  onClick={openLiveChat}
+                  className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:underline cursor-pointer bg-transparent border-none p-0"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" /> Prefer a live agent? Open the live chat →
+                </button>
               </div>
               
               {/* Integrated Chat Window */}
@@ -451,108 +454,6 @@ useEffect(() => {
 
         </div>
       </section>
-
-      {/* Floating Chat Widget */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <AnimatePresence>
-          {isChatOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 15, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 15, scale: 0.95 }}
-              className="mb-3 w-80 sm:w-96 h-[480px] liquid-glass rounded-2xl overflow-hidden flex flex-col"
-            >
-              {/* Floating Widget Header */}
-              <div className="p-4 bg-white/20 border-b border-white/25 text-slate-900 flex items-center justify-between backdrop-blur-md">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-primary/15 rounded-lg flex items-center justify-center text-primary">
-                    <Bot size={16} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-xs text-slate-900">Nexu AI Support</h4>
-                    <span className="text-[9px] text-emerald-600 font-bold uppercase tracking-wider">Online</span>
-                  </div>
-                </div>
-                <button onClick={() => setIsChatOpen(false)} className="p-2 hover:bg-slate-900/5 rounded-full transition-colors text-slate-500 hover:text-slate-900 cursor-pointer">
-                  <X size={18} />
-                </button>
-              </div>
-
-              {/* Floating Widget Messages */}
-              <div className="flex-1 p-4 bg-slate-50/30 overflow-y-auto">
-                <div className="space-y-4 pb-4">
-                  {messages.map((m, i) => {
-                    const isUser = m.role === 'user';
-                    return (
-                      <div key={i} className={`flex gap-2.5 ${isUser ? 'flex-row-reverse' : ''}`}>
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-[10px] font-bold ${
-                          isUser ? 'bg-slate-100 border border-slate-200 text-slate-650' : 'bg-primary text-white border-none shadow-sm'
-                        }`}>
-                          {isUser ? <User size={12} /> : <Bot size={12} />}
-                        </div>
-                        <div className={`px-3 py-2 rounded-xl text-xs leading-relaxed max-w-[85%] text-left ${
-                          isUser 
-                            ? 'bg-primary text-white rounded-tr-none' 
-                            : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none shadow-sm'
-                        }`}>
-                          {m.content}
-                          
-                          {m.content.includes(SUPPORT_EMAIL) && (
-                             <a 
-                               href={`mailto:${SUPPORT_EMAIL}`}
-                               className="mt-2.5 block text-center bg-primary hover:bg-primary/90 text-white py-1.5 rounded-md text-[10px] font-bold transition-colors cursor-pointer"
-                             >
-                               Email Support
-                             </a>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {isChatLoading && (
-                    <div className="flex gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-white">
-                        <Bot size={12} />
-                      </div>
-                      <div className="bg-white border border-slate-200/80 px-3 py-2 rounded-xl rounded-tl-none text-[10px] text-slate-500 flex items-center gap-1.5 shadow-sm">
-                        <Loader2 size={12} className="animate-spin text-primary" />
-                        Replying...
-                      </div>
-                    </div>
-                  )}
-                  <div ref={floatingMessagesEndRef} />
-                </div>
-              </div>
-
-              {/* Floating Widget Input */}
-              <form onSubmit={handleChatSubmit} className="p-4 bg-white/20 border-t border-slate-200/40 backdrop-blur-md">
-                <div className="flex gap-2">
-                  <Input 
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    disabled={isChatLoading}
-                    placeholder="Enter question..." 
-                    className="h-10 bg-white/70 border-slate-200/50 text-slate-900 placeholder-slate-400 rounded-lg text-xs focus-visible:ring-primary focus-visible:border-primary/50 backdrop-blur-sm"
-                  />
-                  <Button disabled={isChatLoading} size="icon" className="h-10 w-10 bg-brand-gradient hover:opacity-95 shrink-0 rounded-lg border-none cursor-pointer">
-                    <Send size={14} className="text-white" />
-                  </Button>
-                </div>
-              </form>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <Button 
-          onClick={() => setIsChatOpen(!isChatOpen)}
-          className={`h-12 w-12 rounded-full shadow-2xl hover:scale-105 transition-all flex items-center justify-center border-none cursor-pointer ${
-            isChatOpen ? 'bg-slate-900 text-white hover:bg-slate-850' : 'bg-primary text-white hover:opacity-95 shadow-primary/20'
-          }`}
-        >
-          {isChatOpen ? <X size={20} /> : <MessageSquare size={20} />}
-        </Button>
-      </div>
 
       <Footer />
     </div>
