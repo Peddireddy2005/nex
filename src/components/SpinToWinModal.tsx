@@ -90,7 +90,7 @@ export default function SpinToWinModal() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  const wheelSize = isTiny ? 170 : isMobile ? 208 : 320;
+  const wheelSize = isMobile ? (isTiny ? 180 : 220) : 320;
 
   const drawWheel = (angle: number) => {
     const canvas = canvasRef.current;
@@ -251,6 +251,201 @@ export default function SpinToWinModal() {
 
   const hubSize = Math.round(wheelSize * 0.2);
 
+  // ---------- SUCCESS VIEW (shared, sizing branches on isMobile) ----------
+  const successView = (
+    <div className="fadein" style={{
+      display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center",
+      textAlign: "center",
+      padding: isMobile ? (isTiny ? "56px 18px 32px" : "64px 20px 36px") : "56px 50px 48px",
+      background: "linear-gradient(135deg,#070f20 0%,#0b1628 60%,#0d1f3c 100%)",
+      borderRadius: isMobile ? 0 : 20,
+      minHeight: isMobile ? "100dvh" : 400,
+      position: "relative", overflow: "hidden",
+    }}>
+      <div style={{ position:"absolute", top:-60, left:-60, width:200, height:200, borderRadius:"50%", background:"rgba(0,198,255,0.06)", filter:"blur(40px)", pointerEvents:"none" }} />
+      <div style={{ position:"absolute", bottom:-60, right:-60, width:200, height:200, borderRadius:"50%", background:"rgba(109,90,255,0.06)", filter:"blur(40px)", pointerEvents:"none" }} />
+
+      <div style={{ width:"100%", maxWidth:400, position:"relative", zIndex:1 }}>
+        <div style={{
+          width:64, height:64, borderRadius:"50%",
+          background:"rgba(0,198,255,.08)", border:"1.5px solid rgba(0,198,255,.3)",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          margin:"0 auto 14px", fontSize:28,
+        }}>{existingClaim ? "👋" : "🏆"}</div>
+
+        <h2 style={{ fontFamily:"Syne,sans-serif", fontSize:isMobile?22:26, fontWeight:800, color:"#f0f8ff", margin:"0 0 6px" }}>
+          {existingClaim ? "Welcome Back!" : "Reward Unlocked!"}
+        </h2>
+        <p style={{ fontSize:13, color:"#3f5a7a", margin:"0 0 18px" }}>
+          {existingClaim ? "You've already claimed your Nexubotics reward" : "You won an exclusive Nexubotics discount"}
+        </p>
+
+        <div style={{
+          padding:"10px 20px", borderRadius:10, marginBottom:20,
+          background: prize?.isFree ? "rgba(253,230,138,.08)" : "rgba(0,198,255,.08)",
+          border:`1px solid ${prize?.isFree ? "rgba(253,230,138,.3)" : "rgba(0,198,255,.3)"}`,
+          fontFamily:"Syne,sans-serif", fontSize:isMobile?18:22, fontWeight:800,
+          color: prize?.isFree ? "#fde68a" : "#00c6ff",
+        }}>{prize?.label}</div>
+
+        <p style={{ fontSize:10, color:"#4b6480", textTransform:"uppercase", letterSpacing:1, fontWeight:600, margin:"0 0 10px" }}>Your Coupon Code</p>
+
+        <div className="coupon-box" style={{
+          background:"#060d1a", border:"2px dashed rgba(0,198,255,0.5)",
+          borderRadius:12, padding:"16px", marginBottom:12,
+          display:"flex", flexDirection:"column", alignItems:"center", gap:10,
+        }}>
+          <span style={{
+            fontFamily:"monospace", fontSize:isMobile?20:24, fontWeight:800,
+            color:"#00c6ff", letterSpacing:3, wordBreak:"break-all", textAlign:"center",
+          }}>{couponCode}</span>
+          <button className="copy-btn" onClick={copyCode} style={{
+            background:"rgba(0,198,255,0.08)", border:"1px solid rgba(0,198,255,0.3)",
+            color: copied?"#34d399":"#7dd3fc", borderRadius:8, padding:"8px 32px",
+            cursor:"pointer", fontSize:12, fontWeight:700, letterSpacing:0.5,
+            transition:"all .2s", width:"100%",
+          }}>
+            {copied ? "✓ Copied!" : "Copy Code"}
+          </button>
+        </div>
+
+        {existingClaim ? (
+          <p style={{ fontSize:11, color:"#4b6480", margin:"0 0 18px", lineHeight:1.6 }}>
+            This code was already sent to <strong style={{ color:"#7dd3fc" }}>{email}</strong> — feel free to reuse it.
+          </p>
+        ) : (
+          <div style={{ display:"flex", flexDirection:"column", gap:5, marginBottom:16, fontSize:11 }}>
+            <div style={{ color: emailFailed?"#fca5a5":emailSending?"#4b6480":emailSent?"#34d399":"#4b6480", display:"flex", alignItems:"center", justifyContent:"center", gap:6, flexWrap:"wrap" }}>
+              {emailSending && <><span style={{ display:"inline-block", width:10, height:10, border:"2px solid #4b6480", borderTopColor:"#00c6ff", borderRadius:"50%", animation:"spin-ring 0.8s linear infinite", flexShrink:0 }}/> Sending coupon to your email...</>}
+              {emailSent && <>✅ Coupon sent to <strong style={{ color:"#7dd3fc" }}>{email}</strong></>}
+              {emailFailed && <>⚠️ Email failed — copy the code above to save it</>}
+            </div>
+            <div style={{ color:dbSaved?"#34d399":"#4b6480", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+              {dbSaved ? <>🗄️ Lead saved to database</> : <><span style={{ display:"inline-block", width:10, height:10, border:"2px solid #4b6480", borderTopColor:"#6d5aff", borderRadius:"50%", animation:"spin-ring 0.8s linear infinite" }}/> Saving...</>}
+            </div>
+          </div>
+        )}
+
+        <p style={{ fontSize:10, color:"#2a3f55", margin:"0 0 22px", lineHeight:1.6 }}>
+          Valid for 30 days · Applicable on all Nexubotics services<br/>
+          Show this code during your strategy call or booking
+        </p>
+
+        <button className="done-btn" onClick={resetAll} style={{
+          width:"100%", padding:"13px 38px", background:"transparent",
+          border:"1px solid rgba(0,198,255,.4)", color:"#7dd3fc",
+          fontSize:12, fontWeight:700, borderRadius:8, cursor:"pointer",
+          letterSpacing:1, textTransform:"uppercase", transition:"all .2s",
+        }}>Claim &amp; Close</button>
+      </div>
+    </div>
+  );
+
+  // ---------- FORM VIEW (shared, sizing branches on isMobile) ----------
+  const wheelBlock = (
+    <div style={{
+      display:"flex", alignItems:"center", justifyContent:"center",
+      padding: isMobile ? (isTiny ? "18px 16px 4px" : "22px 16px 6px") : "30px 20px",
+      flexShrink:0,
+    }}>
+      <div style={{ position:"relative", width:wheelSize, height:wheelSize }}>
+        <div style={{ position:"absolute", inset: isMobile?-10:-14, borderRadius:"50%", background:"conic-gradient(from 0deg,#00c6ff,#6d5aff,#ff3cac,#ffe53b,#00c6ff)", animation:"spin-ring 8s linear infinite" }} />
+        <div style={{ position:"absolute", inset: isMobile?-5:-8, borderRadius:"50%", background:"#0b1628" }} />
+        <div style={{ position:"absolute", inset: isMobile?-2:-3, borderRadius:"50%", background:"conic-gradient(from 180deg,#1a3a5c,#0d2040,#1a3a5c)", boxShadow:"inset 0 0 30px rgba(0,0,0,.8)" }} />
+        <canvas ref={canvasRef} width={wheelSize} height={wheelSize}
+          style={{ position:"relative", zIndex:2, borderRadius:"50%", display:"block", filter:"drop-shadow(0 0 18px rgba(0,198,255,.3))" }} />
+        <div style={{ position:"absolute", top: isMobile?-3:-4, left:"50%", transform:"translateX(-50%)", zIndex:20, width:0, height:0,
+          borderLeft:`${isMobile?9:13}px solid transparent`,
+          borderRight:`${isMobile?9:13}px solid transparent`,
+          borderTop:`${isMobile?22:32}px solid #fff`,
+          filter:"drop-shadow(0 2px 8px rgba(255,255,255,.5))",
+        }} />
+        <div className={spinning?"hub-spinning":""} onClick={handleSpin} style={{
+          position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)",
+          zIndex:15, width:hubSize, height:hubSize, borderRadius:"50%",
+          background:"radial-gradient(circle at 40% 35%,#1e3a5f,#07111f)",
+          border:`${isMobile?2:3}px solid #1e3f6a`,
+          display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+          boxShadow:"0 0 0 2px rgba(0,198,255,.2),inset 0 2px 4px rgba(255,255,255,.05)", cursor:"pointer",
+        }}>
+          <div className="spin-ring-anim" style={{ position:"absolute", inset:-5, borderRadius:"50%", border:"2px solid transparent", borderTopColor:"#00c6ff", borderRightColor:"#6d5aff", animation:"spin-ring .9s linear infinite", opacity:0, transition:"opacity .3s" }} />
+          <span style={{ fontFamily:"Syne,sans-serif", fontSize:isMobile?7:9, fontWeight:800, color:"#7dd3fc", letterSpacing:".8px", lineHeight:1.3, textAlign:"center" }}>SPIN<br/>TO<br/>WIN</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  const formBlock = (
+    <div style={{
+      flex:1, minWidth:0,
+      padding: isMobile ? (isTiny ? "0 18px 20px" : "0 20px 24px") : "40px 36px 40px 20px",
+      display:"flex", flexDirection:"column", justifyContent:"center",
+      position:"relative",
+    }}>
+      <Stars />
+
+      <div style={{ display:"inline-flex", alignItems:"center", gap:6, background:"rgba(0,198,255,.08)", border:"1px solid rgba(0,198,255,.2)", color:"#7dd3fc", fontSize:10, fontWeight:600, padding:"4px 11px", borderRadius:20, letterSpacing:".7px", textTransform:"uppercase", marginBottom:isMobile?8:12, width:"fit-content" }}>✦ Aura Rewards</div>
+
+      <h1 style={{ fontFamily:"Syne,sans-serif", fontSize:isMobile?22:34, fontWeight:800, color:"#f0f8ff", lineHeight:1.1, margin:"0 0 6px", letterSpacing:"-.5px" }}>
+        Spin to <span style={{ background:"linear-gradient(90deg,#00c6ff,#6d5aff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Win Big!</span>
+      </h1>
+      <p style={{ fontSize:12, color:"#3f5a7a", margin:"0 0 14px", lineHeight:1.6 }}>
+        Enter your details, then spin the wheel for an exclusive Nexubotics reward.
+      </p>
+
+      {formError && (
+        <div style={{ marginBottom:10, padding:"9px 12px", borderRadius:8, background:"rgba(239,68,68,.1)", border:"1px solid rgba(239,68,68,.3)", color:"#fca5a5", fontSize:12 }}>
+          {formError}
+        </div>
+      )}
+
+      {[
+        { label:"Name / Company", type:"text", value:name, set:setName, err:nameErr, setErr:setNameErr, placeholder:"Krish Sharma / Nexubotics" },
+        { label:"Phone Number", type:"tel", value:phone, set:setPhone, err:phoneErr, setErr:setPhoneErr, placeholder:"+91 99999 99999" },
+        { label:"Email Address", type:"email", value:email, set:setEmail, err:emailErr, setErr:setEmailErr, placeholder:"krish@nexubotics.com", extra:() => setFormError("") },
+      ].map(({ label, type, value, set, err, setErr, placeholder, extra }) => (
+        <div key={label} style={{ marginBottom:10 }}>
+          <label style={{ fontSize:10, color:"#4b6480", textTransform:"uppercase", letterSpacing:".7px", fontWeight:600, marginBottom:5, display:"block" }}>{label}</label>
+          <input type={type} value={value}
+            onChange={e => { set(e.target.value); setErr(false); extra?.(); }}
+            placeholder={placeholder}
+            style={{ width:"100%", background:"#071020", border:`1px solid ${err?"#ef4444":"#172844"}`, borderRadius:8, padding:"10px 13px", color:"#e2e8f0", fontSize: isMobile ? 16 : 13.5, outline:"none", transition:"border-color .2s" }} />
+        </div>
+      ))}
+
+      <p style={{ fontSize:10, color:"#4b6480", textTransform:"uppercase", letterSpacing:".7px", fontWeight:600, margin:"0 0 8px" }}>Services you're interested in</p>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"7px 12px", marginBottom:16 }}>
+        {["Chatbot","Calling Agent","Lead Generation","Automation","Custom","Nothing Specific"].map(s => (
+          <label key={s} style={{ display:"flex", alignItems:"center", gap:8, fontSize:12.5, color:"#6a8aaa", cursor:"pointer", userSelect:"none" }}>
+            <input type="checkbox" checked={services.includes(s)} onChange={() => toggleService(s)}
+              style={{ accentColor:"#2563eb", width:14, height:14, cursor:"pointer", flexShrink:0 }} />
+            {s}
+          </label>
+        ))}
+      </div>
+
+      <button className="spin-btn" onClick={handleSpin} disabled={spinning||checkingEmail} style={{
+        width:"100%", padding:13,
+        background:"linear-gradient(90deg,#1a3dbf,#2563eb)",
+        border:"1px solid rgba(0,198,255,.4)", color:"#e8f4ff",
+        fontSize:13, fontWeight:700, letterSpacing:"1.2px", borderRadius:9,
+        cursor:(spinning||checkingEmail)?"not-allowed":"pointer",
+        textTransform:"uppercase", transition:"all .2s",
+        opacity:(spinning||checkingEmail)?0.4:1,
+      }}>
+        ⟳ &nbsp;{spinning?"Spinning…":checkingEmail?"Checking...":"Spin the Wheel"}
+      </button>
+    </div>
+  );
+
+  const formView = (
+    <div style={{ display:"flex", flexDirection: isMobile ? "column" : "row" }}>
+      {wheelBlock}
+      {formBlock}
+    </div>
+  );
+
   return (
     <>
       <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -275,243 +470,69 @@ export default function SpinToWinModal() {
         .copy-btn:hover { background: rgba(0,198,255,0.15) !important; }
         .coupon-box { animation: pulse-glow 2s infinite; }
         .fadein { animation: fadeInUp 0.4s ease forwards; }
-        .spin-modal-scroll::-webkit-scrollbar { width: 6px; }
-        .spin-modal-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+        /* Hide the scrollbar only on the mobile full-bleed modal */
+        .mobile-spin-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+        .mobile-spin-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
         * { box-sizing: border-box; }
       `}</style>
 
-      {/* Backdrop */}
-      <div style={{
-        position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)",
-        zIndex: MODAL_Z_INDEX, display: "flex", alignItems: "center", justifyContent: "center",
-        padding: isTiny ? 8 : 12,
-      }}>
-        {/* Gradient border */}
-        <div style={{
-          background: "conic-gradient(from 180deg,#00c6ff,#6d5aff,#ff3cac,#00c6ff)",
-          padding: 2, borderRadius: 22,
-          boxShadow: "0 0 60px rgba(0,198,255,.25),0 0 120px rgba(109,90,255,.15)",
-          width: "100%",
-          maxWidth: isMobile ? "100%" : 720,
-          maxHeight: "calc(100dvh - 16px)",
-        }}>
-          {/* ─────────────── CARD ─────────────── */}
-          <div className="spin-modal-scroll" style={{
-            background: "#0b1628", borderRadius: 20,
-            width: "100%", maxHeight: "calc(100dvh - 16px)",
-            overflowY: "auto", overflowX: "hidden",
-            position: "relative",
+      {isMobile ? (
+        /* ══════════ MOBILE: full-bleed, edge-to-edge, no ring, no visible scrollbar ══════════ */
+        <div
+          className="mobile-spin-scroll"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: MODAL_Z_INDEX,
+            background: "#0b1628",
+            overflowY: "auto",
+            overflowX: "hidden",
             WebkitOverflowScrolling: "touch",
+          }}
+        >
+          <button className="close-x" onClick={() => setIsOpen(false)} style={{
+            position: "fixed", top: 14, right: 14, zIndex: 30,
+            background: "rgba(11,22,40,0.7)", border: "1px solid rgba(255,255,255,.1)",
+            color: "#7dd3fc", fontSize: 15, width: 32, height: 32, borderRadius: "50%",
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            transition: "all .2s", backdropFilter: "blur(6px)",
+          }}>✕</button>
+
+          {view === "success" ? successView : formView}
+        </div>
+      ) : (
+        /* ══════════ DESKTOP: unchanged from before ══════════ */
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)",
+          zIndex: MODAL_Z_INDEX, display: "flex", alignItems: "center", justifyContent: "center",
+          padding: 12,
+        }}>
+          <div style={{
+            background: "conic-gradient(from 180deg,#00c6ff,#6d5aff,#ff3cac,#00c6ff)",
+            padding: 2, borderRadius: 22,
+            boxShadow: "0 0 60px rgba(0,198,255,.25),0 0 120px rgba(109,90,255,.15)",
+            width: "100%", maxWidth: "calc(100dvh - 28px)",
+            maxHeight: "calc(100vdh - 28px)",
           }}>
-            {/* Close */}
-            <button className="close-x" onClick={() => setIsOpen(false)} style={{
-              position: "sticky", top: 12, float: "right", marginRight: 12, zIndex: 30,
-              background: "rgba(11,22,40,0.85)", border: "1px solid rgba(255,255,255,.1)",
-              color: "#7dd3fc", fontSize: 15, width: 32, height: 32, borderRadius: "50%",
-              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-              transition: "all .2s", backdropFilter: "blur(6px)",
-            }}>✕</button>
+            <div style={{
+              background: "#0b1628", borderRadius: 20,
+              width: "100%", maxHeight: "calc(100vh - 28px)",
+              overflowY: "auto", overflowX: "hidden",
+              position: "relative",
+            }}>
+              <button className="close-x" onClick={() => setIsOpen(false)} style={{
+                position: "absolute", top: 14, right: 14, zIndex: 30,
+                background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.07)",
+                color: "#3f5a7a", fontSize: 15, width: 28, height: 28, borderRadius: "50%",
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all .2s",
+              }}>✕</button>
 
-            {/* ══════════ SUCCESS VIEW — replaces everything ══════════ */}
-            {view === "success" ? (
-              <div className="fadein" style={{
-                display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center",
-                textAlign: "center",
-                padding: isTiny ? "16px 16px 28px" : isMobile ? "20px 18px 32px" : "40px 50px 48px",
-                marginTop: isTiny ? -32 : -32,
-                background: "linear-gradient(135deg,#070f20 0%,#0b1628 60%,#0d1f3c 100%)",
-                borderRadius: 20, minHeight: isMobile ? "auto" : 400,
-                position: "relative", overflow: "hidden",
-              }}>
-                {/* Glow blobs */}
-                <div style={{ position:"absolute", top:-60, left:-60, width:200, height:200, borderRadius:"50%", background:"rgba(0,198,255,0.06)", filter:"blur(40px)", pointerEvents:"none" }} />
-                <div style={{ position:"absolute", bottom:-60, right:-60, width:200, height:200, borderRadius:"50%", background:"rgba(109,90,255,0.06)", filter:"blur(40px)", pointerEvents:"none" }} />
-
-                <div style={{ width:"100%", maxWidth:400, position:"relative", zIndex:1 }}>
-                  <div style={{
-                    width:56, height:56, borderRadius:"50%",
-                    background:"rgba(0,198,255,.08)", border:"1.5px solid rgba(0,198,255,.3)",
-                    display:"flex", alignItems:"center", justifyContent:"center",
-                    margin:"0 auto 14px", fontSize:26,
-                  }}>{existingClaim ? "👋" : "🏆"}</div>
-
-                  <h2 style={{ fontFamily:"Syne,sans-serif", fontSize:isTiny?19:isMobile?21:26, fontWeight:800, color:"#f0f8ff", margin:"0 0 6px" }}>
-                    {existingClaim ? "Welcome Back!" : "Reward Unlocked!"}
-                  </h2>
-                  <p style={{ fontSize:12.5, color:"#3f5a7a", margin:"0 0 18px" }}>
-                    {existingClaim ? "You've already claimed your Nexubotics reward" : "You won an exclusive Nexubotics discount"}
-                  </p>
-
-                  {/* Prize badge */}
-                  <div style={{
-                    padding:"10px 18px", borderRadius:10, marginBottom:18,
-                    background: prize?.isFree ? "rgba(253,230,138,.08)" : "rgba(0,198,255,.08)",
-                    border:`1px solid ${prize?.isFree ? "rgba(253,230,138,.3)" : "rgba(0,198,255,.3)"}`,
-                    fontFamily:"Syne,sans-serif", fontSize:isTiny?16:isMobile?17:22, fontWeight:800,
-                    color: prize?.isFree ? "#fde68a" : "#00c6ff",
-                  }}>{prize?.label}</div>
-
-                  <p style={{ fontSize:10, color:"#4b6480", textTransform:"uppercase", letterSpacing:1, fontWeight:600, margin:"0 0 10px" }}>Your Coupon Code</p>
-
-                  {/* Coupon box */}
-                  <div className="coupon-box" style={{
-                    background:"#060d1a", border:"2px dashed rgba(0,198,255,0.5)",
-                    borderRadius:12, padding:"14px", marginBottom:12,
-                    display:"flex", flexDirection:"column", alignItems:"center", gap:10,
-                  }}>
-                    <span style={{
-                      fontFamily:"monospace", fontSize:isTiny?15:isMobile?17:24, fontWeight:800,
-                      color:"#00c6ff", letterSpacing: isMobile ? 1.5 : 3, wordBreak:"break-all", textAlign:"center",
-                    }}>{couponCode}</span>
-                    <button className="copy-btn" onClick={copyCode} style={{
-                      background:"rgba(0,198,255,0.08)", border:"1px solid rgba(0,198,255,0.3)",
-                      color: copied?"#34d399":"#7dd3fc", borderRadius:8, padding:"10px 32px",
-                      cursor:"pointer", fontSize:12, fontWeight:700, letterSpacing:0.5,
-                      transition:"all .2s", width:"100%",
-                    }}>
-                      {copied ? "✓ Copied!" : "Copy Code"}
-                    </button>
-                  </div>
-
-                  {existingClaim ? (
-                    <p style={{ fontSize:11, color:"#4b6480", margin:"0 0 18px", lineHeight:1.6 }}>
-                      This code was already sent to <strong style={{ color:"#7dd3fc" }}>{email}</strong> — feel free to reuse it.
-                    </p>
-                  ) : (
-                    <div style={{ display:"flex", flexDirection:"column", gap:5, marginBottom:16, fontSize:11 }}>
-                      <div style={{ color: emailFailed?"#fca5a5":emailSending?"#4b6480":emailSent?"#34d399":"#4b6480", display:"flex", alignItems:"center", justifyContent:"center", gap:6, flexWrap:"wrap" }}>
-                        {emailSending && <><span style={{ display:"inline-block", width:10, height:10, border:"2px solid #4b6480", borderTopColor:"#00c6ff", borderRadius:"50%", animation:"spin-ring 0.8s linear infinite", flexShrink:0 }}/> Sending coupon to your email...</>}
-                        {emailSent && <>✅ Coupon sent to <strong style={{ color:"#7dd3fc" }}>{email}</strong></>}
-                        {emailFailed && <>⚠️ Email failed — copy the code above to save it</>}
-                      </div>
-                      <div style={{ color:dbSaved?"#34d399":"#4b6480", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
-                        {dbSaved ? <>🗄️ Lead saved to database</> : <><span style={{ display:"inline-block", width:10, height:10, border:"2px solid #4b6480", borderTopColor:"#6d5aff", borderRadius:"50%", animation:"spin-ring 0.8s linear infinite" }}/> Saving...</>}
-                      </div>
-                    </div>
-                  )}
-
-                  <p style={{ fontSize:10, color:"#2a3f55", margin:"0 0 20px", lineHeight:1.6 }}>
-                    Valid for 30 days · Applicable on all Nexubotics services<br/>
-                    Show this code during your strategy call or booking
-                  </p>
-
-                  <button className="done-btn" onClick={resetAll} style={{
-                    width:"100%", padding:"13px 38px", background:"transparent",
-                    border:"1px solid rgba(0,198,255,.4)", color:"#7dd3fc",
-                    fontSize:12, fontWeight:700, borderRadius:8, cursor:"pointer",
-                    letterSpacing:1, textTransform:"uppercase", transition:"all .2s",
-                  }}>Claim &amp; Close</button>
-                </div>
-              </div>
-
-            ) : (
-              /* ══════════ FORM VIEW ══════════ */
-              <div style={{
-                display:"flex",
-                flexDirection: isMobile ? "column" : "row",
-                clear: "both",
-              }}>
-                {/* Wheel panel */}
-                <div style={{
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  padding: isTiny ? "4px 16px 8px" : isMobile ? "8px 16px 6px" : "30px 20px",
-                  flexShrink:0,
-                }}>
-                  <div style={{ position:"relative", width:wheelSize, height:wheelSize }}>
-                    <div style={{ position:"absolute", inset: isMobile?-8:-14, borderRadius:"50%", background:"conic-gradient(from 0deg,#00c6ff,#6d5aff,#ff3cac,#ffe53b,#00c6ff)", animation:"spin-ring 8s linear infinite" }} />
-                    <div style={{ position:"absolute", inset: isMobile?-4:-8, borderRadius:"50%", background:"#0b1628" }} />
-                    <div style={{ position:"absolute", inset: isMobile?-2:-3, borderRadius:"50%", background:"conic-gradient(from 180deg,#1a3a5c,#0d2040,#1a3a5c)", boxShadow:"inset 0 0 30px rgba(0,0,0,.8)" }} />
-                    <canvas ref={canvasRef} width={wheelSize} height={wheelSize}
-                      style={{ position:"relative", zIndex:2, borderRadius:"50%", display:"block", filter:"drop-shadow(0 0 18px rgba(0,198,255,.3))" }} />
-                    {/* Arrow */}
-                    <div style={{ position:"absolute", top: isMobile?-3:-4, left:"50%", transform:"translateX(-50%)", zIndex:20, width:0, height:0,
-                      borderLeft:`${isMobile?8:13}px solid transparent`,
-                      borderRight:`${isMobile?8:13}px solid transparent`,
-                      borderTop:`${isMobile?18:32}px solid #fff`,
-                      filter:"drop-shadow(0 2px 8px rgba(255,255,255,.5))",
-                    }} />
-                    {/* Hub */}
-                    <div className={spinning?"hub-spinning":""} onClick={handleSpin} style={{
-                      position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)",
-                      zIndex:15, width:hubSize, height:hubSize, borderRadius:"50%",
-                      background:"radial-gradient(circle at 40% 35%,#1e3a5f,#07111f)",
-                      border:`${isMobile?2:3}px solid #1e3f6a`,
-                      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-                      boxShadow:"0 0 0 2px rgba(0,198,255,.2),inset 0 2px 4px rgba(255,255,255,.05)", cursor:"pointer",
-                    }}>
-                      <div className="spin-ring-anim" style={{ position:"absolute", inset:-5, borderRadius:"50%", border:"2px solid transparent", borderTopColor:"#00c6ff", borderRightColor:"#6d5aff", animation:"spin-ring .9s linear infinite", opacity:0, transition:"opacity .3s" }} />
-                      <span style={{ fontFamily:"Syne,sans-serif", fontSize:isMobile?7:9, fontWeight:800, color:"#7dd3fc", letterSpacing:".8px", lineHeight:1.3, textAlign:"center" }}>SPIN<br/>TO<br/>WIN</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Form panel */}
-                <div style={{
-                  flex:1, minWidth:0,
-                  padding: isTiny ? "4px 16px 22px" : isMobile ? "4px 18px 26px" : "40px 36px 40px 20px",
-                  display:"flex", flexDirection:"column", justifyContent:"center",
-                  position:"relative",
-                }}>
-                  <Stars />
-
-                  <div style={{ display:"inline-flex", alignItems:"center", gap:6, background:"rgba(0,198,255,.08)", border:"1px solid rgba(0,198,255,.2)", color:"#7dd3fc", fontSize:10, fontWeight:600, padding:"4px 11px", borderRadius:20, letterSpacing:".7px", textTransform:"uppercase", marginBottom:isMobile?8:12, width:"fit-content" }}>✦ Aura Rewards</div>
-
-                  <h1 style={{ fontFamily:"Syne,sans-serif", fontSize:isTiny?20:isMobile?24:34, fontWeight:800, color:"#f0f8ff", lineHeight:1.1, margin:"0 0 6px", letterSpacing:"-.5px" }}>
-                    Spin to <span style={{ background:"linear-gradient(90deg,#00c6ff,#6d5aff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Win Big!</span>
-                  </h1>
-                  <p style={{ fontSize:11.5, color:"#3f5a7a", margin:"0 0 14px", lineHeight:1.6 }}>
-                    Enter your details, then spin the wheel for an exclusive Nexubotics reward.
-                  </p>
-
-                  {formError && (
-                    <div style={{ marginBottom:10, padding:"9px 12px", borderRadius:8, background:"rgba(239,68,68,.1)", border:"1px solid rgba(239,68,68,.3)", color:"#fca5a5", fontSize:12 }}>
-                      {formError}
-                    </div>
-                  )}
-
-                  {[
-                    { label:"Name / Company", type:"text", value:name, set:setName, err:nameErr, setErr:setNameErr, placeholder:"Krish Sharma / Nexubotics" },
-                    { label:"Phone Number", type:"tel", value:phone, set:setPhone, err:phoneErr, setErr:setPhoneErr, placeholder:"+91 99999 99999" },
-                    { label:"Email Address", type:"email", value:email, set:setEmail, err:emailErr, setErr:setEmailErr, placeholder:"krish@nexubotics.com", extra:() => setFormError("") },
-                  ].map(({ label, type, value, set, err, setErr, placeholder, extra }) => (
-                    <div key={label} style={{ marginBottom:10 }}>
-                      <label style={{ fontSize:10, color:"#4b6480", textTransform:"uppercase", letterSpacing:".7px", fontWeight:600, marginBottom:5, display:"block" }}>{label}</label>
-                      <input type={type} value={value}
-                        onChange={e => { set(e.target.value); setErr(false); extra?.(); }}
-                        placeholder={placeholder}
-                        style={{ width:"100%", background:"#071020", border:`1px solid ${err?"#ef4444":"#172844"}`, borderRadius:8, padding:"11px 13px", color:"#e2e8f0", fontSize:16, outline:"none", transition:"border-color .2s" }} />
-                    </div>
-                  ))}
-
-                  <p style={{ fontSize:10, color:"#4b6480", textTransform:"uppercase", letterSpacing:".7px", fontWeight:600, margin:"0 0 8px" }}>Services you're interested in</p>
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px 12px", marginBottom:16 }}>
-                    {["Chatbot","Calling Agent","Lead Generation","Automation","Custom","Nothing Specific"].map(s => (
-                      <label key={s} style={{ display:"flex", alignItems:"center", gap:8, fontSize:12.5, color:"#6a8aaa", cursor:"pointer", userSelect:"none" }}>
-                        <input type="checkbox" checked={services.includes(s)} onChange={() => toggleService(s)}
-                          style={{ accentColor:"#2563eb", width:16, height:16, cursor:"pointer", flexShrink:0 }} />
-                        {s}
-                      </label>
-                    ))}
-                  </div>
-
-                  <button className="spin-btn" onClick={handleSpin} disabled={spinning||checkingEmail} style={{
-                    width:"100%", padding:14,
-                    background:"linear-gradient(90deg,#1a3dbf,#2563eb)",
-                    border:"1px solid rgba(0,198,255,.4)", color:"#e8f4ff",
-                    fontSize:13, fontWeight:700, letterSpacing:"1.2px", borderRadius:9,
-                    cursor:(spinning||checkingEmail)?"not-allowed":"pointer",
-                    textTransform:"uppercase", transition:"all .2s",
-                    opacity:(spinning||checkingEmail)?0.4:1,
-                  }}>
-                    ⟳ &nbsp;{spinning?"Spinning…":checkingEmail?"Checking...":"Spin the Wheel"}
-                  </button>
-                </div>
-              </div>
-            )}
+              {view === "success" ? successView : formView}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 }
