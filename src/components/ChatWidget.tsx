@@ -12,7 +12,29 @@ export default function ChatWidget() {
       }
     }
     window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
+
+    // Allows any page (Home, Support, etc.) to open THIS real chatbot
+    // instead of using a separate fake/canned chat UI.
+    function handleOpenRequest() {
+      setExpanded(true);
+      try {
+        const iframe = document.querySelector<HTMLIFrameElement>(
+          'iframe[title="Nexubotics Chat"]'
+        );
+        iframe?.contentWindow?.postMessage(
+          { type: "nexubotics-open-widget" },
+          "*"
+        );
+      } catch {
+        // no-op
+      }
+    }
+    window.addEventListener("nexubotics:open-chat", handleOpenRequest);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+      window.removeEventListener("nexubotics:open-chat", handleOpenRequest);
+    };
   }, []);
 
   return (

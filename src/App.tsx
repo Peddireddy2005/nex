@@ -16,6 +16,7 @@ import SmoothScroll from "./components/SmoothScroll";
 import StickyCTA from "./components/StickyCTA";
 import ScrollToTop from "./components/ScrollToTop";
 import ChatWidget from "./components/ChatWidget";
+import SpinToWinModal from "./components/SpinToWinModal";
 
 export default function App() {
   return (
@@ -39,6 +40,9 @@ export default function App() {
       </SmoothScroll>
       <Toaster />
       <ChatWidget />
+      {/* Mounted once at the app root so it does NOT reset/reload every
+          time you navigate back to the Home page. */}
+      <SpinToWinModal />
     </Router>
   );
 }
