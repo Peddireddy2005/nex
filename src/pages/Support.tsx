@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "motion/react";
-import { Mail, HelpCircle, CheckCircle2, MessageSquare, Send, User, Bot, X, Loader2, Phone, Clock, Sparkles, ShieldCheck } from "lucide-react";
+import { Mail, HelpCircle, CheckCircle2, MessageSquare, Send, User, Bot, X, Loader2, Phone, Clock, Sparkles, ShieldCheck, Settings, Tag, HeartHandshake } from "lucide-react";
 import useSEO from "../hooks/useSEO";
 import {
   Accordion,
@@ -16,11 +16,58 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { SUPPORT_EMAIL } from "@/constants";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
+// ------------------------------------------------------------------
+// Demo chatbot widget data (shared shape with Home.tsx)
+// ------------------------------------------------------------------
+type DemoMsg = {
+  sender: "bot" | "user";
+  text: string;
+  cta?: { label: string; to?: string };
+};
+
+const QUICK_ACTIONS = [
+  { icon: Phone, label: "Book a Call", topic: "book" },
+  { icon: MessageSquare, label: "AI Chatbots", topic: "chatbots" },
+  { icon: Settings, label: "AI Automation", topic: "automation" },
+  { icon: Bot, label: "AI Agents", topic: "agents" },
+  { icon: Tag, label: "Pricing", topic: "pricing" },
+  { icon: HeartHandshake, label: "Human Assistance", topic: "human" }
+] as const;
+
+const TOPIC_REPLIES: Record<string, { text: string; cta?: { label: string; to?: string } }> = {
+  book: {
+    text: "Great choice! Let's find a time that works for you — our team will walk through your goals and map out a plan.",
+    cta: { label: "Open Booking Page →", to: "/book" }
+  },
+  chatbots: {
+    text: "Our AI Chatbots learn from your website or files to answer customer questions automatically, 24/7.",
+    cta: { label: "See Chatbot Details →", to: "/services/chatbots" }
+  },
+  automation: {
+    text: "We connect your favorite apps so information flows and actions trigger automatically — no manual copy-pasting.",
+    cta: { label: "See Automation Details →", to: "/services/workflows" }
+  },
+  agents: {
+    text: "Our Voice Agents talk like real people to welcome callers, book meetings, and qualify leads over the phone.",
+    cta: { label: "See Voice Agent Details →", to: "/services/voice-agents" }
+  },
+  pricing: {
+    text: "We offer flexible pricing across Standard, Plus, and Pro tiers, plus custom quotes for bigger builds.",
+    cta: { label: "View Pricing →", to: "/pricing" }
+  },
+  human: {
+    text: "Connecting you with a real person now — opening our live chat."
+  }
+};
 
 export default function Support() {
-  const [messages, setMessages] = useState<{ role: string, content: string }[]>([
-    { role: "assistant", content: "Hello! I'm the Nexubotics AI assistant. Ask me anything about our platforms, services, or how to get started!" }
+  const [messages, setMessages] = useState<DemoMsg[]>([
+    {
+      sender: "bot",
+      text: "Hey! 👋 Welcome to Nexubotics. I can tell you about our AI Chatbots, Automation, Agents, and Pricing. Tap a button below to get started!"
+    }
   ]);
   const [chatInput, setChatInput] = useState("");
   const [isChatLoading, setIsChatLoading] = useState(false);
@@ -40,15 +87,15 @@ export default function Support() {
     keywords: "Nexubotics support, virtual AI assistant support, customer support chatbot, contact Nexubotics"
   });
 
-const isFirstRender = useRef(true);
+  const isFirstRender = useRef(true);
 
-useEffect(() => {
-  if (isFirstRender.current) {
-    isFirstRender.current = false;
-    return;
-  }
-  mainMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-}, [messages, isChatLoading]);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    mainMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isChatLoading]);
 
   // Opens the REAL live chatbot (floating bottom-right on every page)
   // instead of the FAQ-style assistant below.
@@ -56,71 +103,36 @@ useEffect(() => {
     window.dispatchEvent(new CustomEvent("nexubotics:open-chat"));
   };
 
-  // Purely client-side smart auto-replies for virtual assistant
+  const handleQuickAction = (topic: string, label: string) => {
+    if (isChatLoading) return;
+    setMessages(prev => [...prev, { sender: "user", text: label }]);
+    setIsChatLoading(true);
+    setTimeout(() => {
+      setIsChatLoading(false);
+      if (topic === "human") {
+        openLiveChat();
+      }
+      const reply = TOPIC_REPLIES[topic];
+      setMessages(prev => [...prev, { sender: "bot", text: reply.text, cta: reply.cta ? { ...reply.cta } : undefined }]);
+    }, 900);
+  };
+
   const handleChatSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim() || isChatLoading) return;
+    const text = chatInput.trim();
+    if (!text || isChatLoading) return;
 
-    const userMsg = chatInput.trim();
-    const newMessages = [...messages, { role: "user", content: userMsg }];
-    setMessages(newMessages);
+    setMessages(prev => [...prev, { sender: "user", text }]);
     setChatInput("");
     setIsChatLoading(true);
 
     setTimeout(() => {
-      let reply = "";
-      const lower = userMsg.toLowerCase();
-      const cleanLower = lower.replace(/[?.!,]/g, "").trim();
-      
-      const greetings = ["hi", "hello", "hey", "yo", "greetings"];
-      const isGreeting = greetings.some(g => cleanLower === g || cleanLower.startsWith(g + " "));
-      
-      const acknowledgments = ["ok", "okay", "okey", "cool", "great", "nice", "awesome", "sure", "got it", "fine", "yep", "yes", "no"];
-      const isAcknowledgment = acknowledgments.includes(cleanLower);
-
-      const gratitudes = ["thanks", "thank you", "ty", "appreciate it", "thx"];
-      const isGratitude = gratitudes.includes(cleanLower) || cleanLower.startsWith("thanks ") || cleanLower.startsWith("thank you ");
-
-      const confused = ["what", "huh", "pardon", "sorry", "excuse me"];
-      const isConfused = confused.some(c => cleanLower === c || cleanLower.startsWith(c + " "));
-
-      const farewells = ["bye", "goodbye", "see ya", "later"];
-      const isFarewell = farewells.some(f => cleanLower === f || cleanLower.startsWith(f + " "));
-      
-      const isFAQ = lower.includes("faq") || lower.includes("f.a.q") || lower.includes("question") || lower.includes("guide");
-      const isFrustrated = lower.includes("frustrat") || lower.includes("broken") || lower.includes("issue") || lower.includes("problem") || lower.includes("error") || lower.includes("not working") || lower.includes("useless") || lower.includes("bad") || lower.includes("fail") || lower.includes("help") || lower.includes("support");
-
-      if (isGreeting) {
-        reply = "Hello! How can I help you today? You can ask me about our services, pricing, integration capabilities, setup times, or security.";
-      } else if (isAcknowledgment) {
-        reply = "Great! Let me know if you have any questions about our services or pricing.";
-      } else if (isGratitude) {
-        reply = "You're very welcome! Let me know if I can help you with anything else.";
-      } else if (isConfused) {
-        reply = "I am the Nexubotics AI assistant. You can ask me questions about our platforms, pricing, integrations, or setup times. What would you like to know?";
-      } else if (isFarewell) {
-        reply = "Goodbye! Have a great day!";
-      } else if (isFrustrated) {
-        reply = "I'm sorry if you're experiencing issues or if I'm not answering your questions correctly. You can get in touch with our team directly using the Contact Form below, email us, or message us on WhatsApp!";
-      } else if (lower.includes("price") || lower.includes("cost") || lower.includes("plan") || lower.includes("pricing")) {
-        reply = "We offer flexible pricing options (Standard, Plus, and Pro). You can view the details on our Pricing page, or request a custom quote directly from there.";
-      } else if (lower.includes("human") || lower.includes("person") || lower.includes("agent") || lower.includes("representative") || lower.includes("whatsapp") || lower.includes("call") || lower.includes("phone")) {
-        reply = `You can speak directly with our team on WhatsApp (click the button below to message us) or email us at ${SUPPORT_EMAIL}. You can also schedule a strategy call using the button in the navigation bar.`;
-      } else if (lower.includes("integration") || lower.includes("crm") || lower.includes("hubspot") || lower.includes("salesforce") || lower.includes("sync")) {
-        reply = "Nexubotics integrates seamlessly with HubSpot, Salesforce, Pipedrive, and over 1,000 other apps via custom webhooks and secure API endpoints.";
-      } else if (lower.includes("security") || lower.includes("safety") || lower.includes("data") || lower.includes("private")) {
-        reply = "We prioritize security. All telemetry data, vector databases, and client interactions are secured using end-to-end TLS encryption.";
-      } else if (lower.includes("deploy") || lower.includes("setup") || lower.includes("start") || lower.includes("create")) {
-        reply = "Deploying an agent or workflow is simple. Choose a service or pricing plan, request a quote, and our deployment engineers will set up your dedicated workspace in under 12 hours.";
-      } else if (isFAQ) {
-        reply = "We have compiled a list of common questions in the FAQ section on the right side of this page. Feel free to browse them or ask me specific questions about our services.";
-      } else {
-        reply = "I'm not quite sure how to answer that. If you need help with this, please use the Contact Form below, email us, or chat with us on WhatsApp to speak with our team.";
-      }
-
-      setMessages([...newMessages, { role: "assistant", content: reply }]);
       setIsChatLoading(false);
-    }, 800);
+      setMessages(prev => [
+        ...prev,
+        { sender: "bot", text: "Thanks! Tap one of the buttons below for a detailed answer, or chat with our live support agent." }
+      ]);
+    }, 900);
   };
 
   const handleContactSubmit = async (e: React.FormEvent) => {
@@ -186,10 +198,10 @@ useEffect(() => {
       {/* Main Grid Content */}
       <section className="relative pt-24 pb-20 px-6 max-w-7xl mx-auto">
         <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
-        
+
         <div className="relative z-10 space-y-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            
+
             {/* Left Column: Chat Console */}
             <div className="lg:col-span-7 space-y-8">
               <div className="space-y-4">
@@ -208,61 +220,74 @@ useEffect(() => {
                   <MessageSquare className="w-3.5 h-3.5" /> Prefer a live agent? Open the live chat →
                 </button>
               </div>
-              
+
               {/* Integrated Chat Window */}
-              <div className="liquid-glass rounded-3xl h-[480px] flex flex-col overflow-hidden relative">
-                <div className="absolute top-0 left-0 w-full h-1 bg-brand-gradient" />
-                
-                {/* Chat Message Scroll */}
-                <div className="flex-1 p-6 overflow-y-auto">
-                  <div className="space-y-6 pb-4">
-                    {messages.map((m, i) => {
-                      const isUser = m.role === 'user';
-                      return (
-                        <div key={i} className={`flex gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${
-                            isUser ? 'bg-slate-100 border border-slate-200 text-slate-650' : 'bg-primary text-white shadow-md shadow-primary/20'
-                          }`}>
-                            {isUser ? <User size={14} /> : <Bot size={14} />}
+              <div className="rounded-3xl relative overflow-hidden flex flex-col h-[560px] w-full shadow-xl bg-white border border-slate-200/60">
+                {/* Header */}
+                <div className="bg-[#0b1c3d] px-5 py-4 flex items-center gap-3 shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
+                    N
+                  </div>
+                  <span className="font-bold text-white text-base">Nexubotics</span>
+                </div>
+
+                {/* Message thread */}
+                <div className="flex-1 p-5 overflow-y-auto bg-slate-50/40">
+                  <div className="space-y-4 pb-2">
+                    {messages.map((msg, i) => (
+                      <div key={i} className={`flex gap-2.5 ${msg.sender === "user" ? "flex-row-reverse" : ""}`}>
+                        {msg.sender === "bot" && (
+                          <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white font-bold text-[10px] shrink-0 mt-auto">
+                            N
                           </div>
-                          
-                          <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed max-w-[80%] shadow-sm text-left ${
-                            isUser 
-                              ? 'bg-primary text-white rounded-tr-none' 
-                              : 'bg-slate-100 border border-slate-200/60 text-slate-800 rounded-tl-none'
-                          }`}>
-                            {m.content}
-                            
-                            {m.content.includes(SUPPORT_EMAIL) && (
-                               <a 
-                                 href={`mailto:${SUPPORT_EMAIL}`}
-                                 className="mt-3 flex items-center justify-center gap-2 bg-primary text-white p-2.5 rounded-lg text-xs font-bold hover:bg-primary/95 transition-colors shadow-md border-none cursor-pointer"
-                               >
-                                 <Mail size={12} /> Send Email
-                               </a>
-                            )}
-                            
-                            {m.content.includes("WhatsApp") && (
-                               <a 
-                                 href="https://wa.me/917829527825" 
-                                 target="_blank" 
-                                 rel="noreferrer"
-                                 className="mt-3 flex items-center justify-center gap-2 bg-green-500 text-white p-2.5 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors shadow-md border-none cursor-pointer"
-                               >
-                                 <Phone size={12} /> Message WhatsApp
-                               </a>
-                            )}
-                          </div>
+                        )}
+                        <div
+                          className={`p-3.5 rounded-2xl text-xs leading-relaxed max-w-[80%] whitespace-pre-line shadow-sm text-left ${
+                            msg.sender === "bot"
+                              ? "bg-white border border-slate-100 text-slate-800 rounded-tl-none self-start"
+                              : "bg-primary text-white rounded-tr-none self-end"
+                          }`}
+                        >
+                          {msg.text}
+
+                          {msg.cta && (
+                            <Link
+                              to={msg.cta.to || "#"}
+                              className="mt-2.5 flex items-center justify-center gap-1.5 bg-slate-900 text-white p-2 rounded-lg text-[11px] font-bold hover:bg-slate-800 transition-colors"
+                            >
+                              {msg.cta.label}
+                            </Link>
+                          )}
+
+                          {msg.sender === "bot" && msg.text.includes(SUPPORT_EMAIL) && (
+                            <a
+                              href={`mailto:${SUPPORT_EMAIL}`}
+                              className="mt-3 flex items-center justify-center gap-2 bg-primary text-white p-2.5 rounded-lg text-xs font-bold hover:bg-primary/95 transition-colors shadow-md border-none cursor-pointer"
+                            >
+                              <Mail size={12} /> Send Email
+                            </a>
+                          )}
+
+                          {msg.sender === "bot" && msg.text.includes("WhatsApp") && (
+                            <a
+                              href="https://wa.me/917829527825"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-3 flex items-center justify-center gap-2 bg-green-500 text-white p-2.5 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors shadow-md border-none cursor-pointer"
+                            >
+                              <Phone size={12} /> Message WhatsApp
+                            </a>
+                          )}
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
 
                     {isChatLoading && (
-                      <div className="flex gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white shadow-md shadow-primary/20">
-                          <Bot size={14} />
+                      <div className="flex gap-2.5">
+                        <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white font-bold text-[10px] shrink-0">
+                          N
                         </div>
-                        <div className="bg-slate-100 border border-slate-200/60 px-4 py-3 rounded-2xl rounded-tl-none text-xs text-slate-500 flex items-center gap-2 shadow-sm font-semibold">
+                        <div className="bg-white border border-slate-100 px-4 py-3 rounded-2xl rounded-tl-none text-xs text-slate-500 flex items-center gap-2 shadow-sm font-semibold">
                           <Loader2 size={14} className="animate-spin text-primary" />
                           Formulating answer...
                         </div>
@@ -272,17 +297,35 @@ useEffect(() => {
                   </div>
                 </div>
 
+                {/* Quick actions */}
+                <div className="px-4 pt-3 pb-1 border-t border-slate-100 bg-white shrink-0">
+                  <div className="grid grid-cols-2 gap-2">
+                    {QUICK_ACTIONS.map(({ icon: Icon, label, topic }) => (
+                      <button
+                        key={topic}
+                        type="button"
+                        disabled={isChatLoading}
+                        onClick={() => handleQuickAction(topic, label)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-semibold text-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
+                      >
+                        <Icon className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span className="truncate">{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Chat Form */}
-                <form onSubmit={handleChatSubmit} className="p-4 bg-white/20 border-t border-slate-200/40 backdrop-blur-md">
+                <form onSubmit={handleChatSubmit} className="p-4 bg-white border-t border-slate-100 shrink-0">
                   <div className="flex gap-2">
-                    <Input 
+                    <Input
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       disabled={isChatLoading}
-                      placeholder="Ask a question..." 
-                      className="h-11 bg-white/70 border-slate-200/50 text-slate-900 placeholder-slate-400 rounded-xl text-sm focus-visible:ring-primary focus-visible:border-primary/50 backdrop-blur-sm"
+                      placeholder="Type your message..."
+                      className="h-11 bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 rounded-xl text-sm focus-visible:ring-primary focus-visible:border-primary/50"
                     />
-                    <Button disabled={isChatLoading} size="icon" className="h-11 w-11 bg-brand-gradient hover:opacity-95 shrink-0 rounded-xl border-none cursor-pointer">
+                    <Button disabled={isChatLoading} size="icon" className="h-11 w-11 bg-primary hover:opacity-90 shrink-0 rounded-xl border-none cursor-pointer">
                       <Send size={16} className="text-white" />
                     </Button>
                   </div>
@@ -298,7 +341,7 @@ useEffect(() => {
                   </div>
                   <h2 className="text-2xl font-bold text-slate-900 font-display">FAQ / Guides</h2>
                </div>
-               
+
                <Accordion type="single" collapsible className="space-y-4">
                  {FAQS.map((item, i) => (
                    <AccordionItem key={i} value={`item-${i}`} className="border border-slate-200/50 bg-slate-50/80 rounded-xl px-5 overflow-hidden backdrop-blur-md">

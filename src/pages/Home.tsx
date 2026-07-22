@@ -2,13 +2,13 @@ import React, { useEffect, useState, useRef, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { 
-  Cpu, 
-  ChevronRight, 
-  MessageSquare, 
-  Zap, 
-  GitBranch, 
-  CheckCircle2, 
+import {
+  Cpu,
+  ChevronRight,
+  MessageSquare,
+  Zap,
+  GitBranch,
+  CheckCircle2,
   Sliders,
   Shield,
   Activity,
@@ -23,7 +23,12 @@ import {
   User,
   Briefcase,
   MapPin,
-  Clock
+  Clock,
+  Phone,
+  Settings,
+  Bot,
+  Tag,
+  HeartHandshake
 } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
@@ -80,6 +85,50 @@ function NeuralBackground() {
   return null;
 }
 
+// ------------------------------------------------------------------
+// Demo chatbot widget data (shared shape with Support.tsx)
+// ------------------------------------------------------------------
+type DemoMsg = {
+  sender: "bot" | "user";
+  text: string;
+  cta?: { label: string; to?: string };
+};
+
+const QUICK_ACTIONS = [
+  { icon: Phone, label: "Book a Call", topic: "book" },
+  { icon: MessageSquare, label: "AI Chatbots", topic: "chatbots" },
+  { icon: Settings, label: "AI Automation", topic: "automation" },
+  { icon: Bot, label: "AI Agents", topic: "agents" },
+  { icon: Tag, label: "Pricing", topic: "pricing" },
+  { icon: HeartHandshake, label: "Human Assistance", topic: "human" }
+] as const;
+
+const TOPIC_REPLIES: Record<string, { text: string; cta?: { label: string; to?: string } }> = {
+  book: {
+    text: "Great choice! Let's find a time that works for you — our team will walk through your goals and map out a plan.",
+    cta: { label: "Open Booking Page →", to: "/book" }
+  },
+  chatbots: {
+    text: "Our AI Chatbots learn from your website or files to answer customer questions automatically, 24/7.",
+    cta: { label: "See Chatbot Details →", to: "/services/chatbots" }
+  },
+  automation: {
+    text: "We connect your favorite apps so information flows and actions trigger automatically — no manual copy-pasting.",
+    cta: { label: "See Automation Details →", to: "/services/workflows" }
+  },
+  agents: {
+    text: "Our Voice Agents talk like real people to welcome callers, book meetings, and qualify leads over the phone.",
+    cta: { label: "See Voice Agent Details →", to: "/services/voice-agents" }
+  },
+  pricing: {
+    text: "We offer flexible pricing across Standard, Plus, and Pro tiers, plus custom quotes for bigger builds.",
+    cta: { label: "View Pricing →", to: "/pricing" }
+  },
+  human: {
+    text: "Connecting you with a real person now — opening our live chat."
+  }
+};
+
 export default function Home() {
   useSEO({
     title: "Nexubotics - Smarter Workflows. Faster Growth. Powered by AI.",
@@ -99,10 +148,10 @@ export default function Home() {
   const runWorkflow = (e: React.FormEvent) => {
     e.preventDefault();
     if (isRunningWorkflow) return;
-    
+
     setIsRunningWorkflow(true);
     setActiveWorkflowNode(0);
-    
+
     setTimeout(() => { setActiveWorkflowNode(1); }, 1500);
     setTimeout(() => { setActiveWorkflowNode(2); }, 3200);
     setTimeout(() => { setActiveWorkflowNode(3); }, 5000);
@@ -112,42 +161,51 @@ export default function Home() {
     }, 6800);
   };
 
-  const [messages, setMessages] = useState<Array<{ sender: "bot" | "user"; text: string }>>([
-    { sender: "bot", text: "Hello! How can I help you?" }
+  // ------------------------------------------------------------------
+  // Demo chatbot widget state/logic
+  // ------------------------------------------------------------------
+  const [messages, setMessages] = useState<DemoMsg[]>([
+    {
+      sender: "bot",
+      text: "Hey! 👋 Welcome to Nexubotics. I can tell you about our AI Chatbots, Automation, Agents, and Pricing. Tap a button below to get started!"
+    }
   ]);
-  const [inputText, setInputText] = useState("how do i use this chatbot builder");
+  const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-
-  const handleSendMessage = (textToSend?: string) => {
-    const text = (textToSend || inputText).trim();
-    if (!text || isTyping) return;
-
-    setMessages(prev => [...prev, { sender: "user", text }]);
-    if (!textToSend) setInputText("");
-    setIsTyping(true);
-
-    setTimeout(() => {
-      setIsTyping(false);
-      let reply = "";
-      if (text.toLowerCase().includes("chatbot builder") || text.toLowerCase().includes("how do i use")) {
-        reply = `Alright, let's get your chatbot deployed. Follow these simple steps:
-1. Request a custom plan or quote via our Pricing page.
-2. Our deployment engineers will set up your chatbot training on your business domain.
-3. Paste the provided lightweight embed code onto your website.
-
-That's it! Everything is fully managed by our operations team.`;
-      } else {
-        reply = `I am a demo assistant. Ask "how do i use this chatbot builder" to test our widget builder!`;
-      }
-      setMessages(prev => [...prev, { sender: "bot", text: reply }]);
-      setInputText("how do i use this chatbot builder");
-    }, 1250);
-  };
 
   // Opens the REAL live chatbot (the widget floating bottom-right on every
   // page), instead of the scripted demo above.
   const openLiveChat = () => {
     window.dispatchEvent(new CustomEvent("nexubotics:open-chat"));
+  };
+
+  const handleQuickAction = (topic: string, label: string) => {
+    if (isTyping) return;
+    setMessages(prev => [...prev, { sender: "user", text: label }]);
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      if (topic === "human") {
+        openLiveChat();
+      }
+      const reply = TOPIC_REPLIES[topic];
+      setMessages(prev => [...prev, { sender: "bot", text: reply.text, cta: reply.cta ? { ...reply.cta } : undefined }]);
+    }, 900);
+  };
+
+  const handleSendMessage = () => {
+    const text = inputText.trim();
+    if (!text || isTyping) return;
+    setMessages(prev => [...prev, { sender: "user", text }]);
+    setInputText("");
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      setMessages(prev => [
+        ...prev,
+        { sender: "bot", text: "Thanks! For a detailed answer on that, tap one of the buttons below or chat with our live support agent." }
+      ]);
+    }, 900);
   };
 
   const FEATURES_DATA = [
@@ -175,9 +233,9 @@ That's it! Everything is fully managed by our operations team.`;
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary overflow-x-hidden font-sans relative">
-      
+
       <NeuralBackground />
-      
+
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/3 blur-[140px] pointer-events-none rounded-full" />
       <div className="absolute top-[20%] right-1/4 w-[600px] h-[600px] bg-indigo-500/2 blur-[150px] pointer-events-none rounded-full" />
       <div className="absolute bottom-[20%] left-1/3 w-[700px] h-[700px] bg-purple-500/2 blur-[160px] pointer-events-none rounded-full" />
@@ -187,20 +245,20 @@ That's it! Everything is fully managed by our operations team.`;
       {/* Hero Section */}
       <section className="relative pt-32 md:pt-40 pb-28 px-6 overflow-hidden border-b border-slate-200/50 bg-slate-50/50">
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-100">
-          <video 
-            src="/HeroBackground.mp4" 
-            autoPlay 
-            loop 
-            muted 
+          <video
+            src="/HeroBackground.mp4"
+            autoPlay
+            loop
+            muted
             playsInline
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/40 to-background" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,var(--color-background)_95%)]" />
         </div>
-        
+
         <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10 flex flex-col items-center">
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15, ease: "easeOut" }}
@@ -210,8 +268,8 @@ That's it! Everything is fully managed by our operations team.`;
             Faster growth. <br />
             Powered by <span className="text-primary">AI.</span>
           </motion.h1>
-          
-          <motion.p 
+
+          <motion.p
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
@@ -220,7 +278,7 @@ That's it! Everything is fully managed by our operations team.`;
             Orchestrate autonomous systems that run operations, route databases, and resolve tickets. High-performance enterprise infrastructure engineered for speed, safety, and scale.
           </motion.p>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.45, ease: "easeOut" }}
@@ -249,48 +307,57 @@ That's it! Everything is fully managed by our operations team.`;
               <span className="text-brand-gradient">AI assistant.</span>
             </h2>
             <p className="text-slate-600 text-sm leading-relaxed font-normal">
-              Experience the speed, style, and intelligence of our chatbot interfaces instantly. You can type a question, or simply click the Send button directly to test the agent response.
+              Experience the speed, style, and intelligence of our chatbot interfaces instantly. Tap a quick-action button below or type your own question to test the agent response.
             </p>
           </div>
 
           <div className="lg:col-span-7 flex justify-center">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 25 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.7, ease: "easeOut" }}
               className="max-w-[400px] w-full"
             >
-              <div className="liquid-glass rounded-[28px] relative overflow-hidden flex flex-col justify-between h-[440px] w-full z-10">
-                <div className="bg-white/35 border-b border-white/20 px-5 py-4 flex items-center justify-between backdrop-blur-md">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-brand-gradient flex items-center justify-center text-white relative shadow-md">
-                      <MessageSquare className="w-4 h-4 text-white" />
-                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
-                    </div>
-                    <div className="text-left">
-                      <span className="font-extrabold text-sm text-slate-900 block">Nexubotics</span>
-                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Demo Assistant</span>
-                    </div>
+              <div className="rounded-[28px] relative overflow-hidden flex flex-col h-[520px] w-full z-10 shadow-2xl bg-white border border-slate-200/60">
+                {/* Header */}
+                <div className="bg-[#0b1c3d] px-5 py-4 flex items-center gap-3 shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
+                    N
                   </div>
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                  <span className="font-bold text-white text-base">Nexubotics</span>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-5 space-y-4 text-left flex flex-col min-h-0">
+                {/* Message thread */}
+                <div className="flex-1 overflow-y-auto p-5 space-y-4 text-left flex flex-col min-h-0 bg-slate-50/40">
                   {messages.map((msg, i) => (
-                    <div 
-                      key={i} 
-                      className={`p-3.5 rounded-2xl text-xs leading-relaxed max-w-[85%] whitespace-pre-line shadow-sm transition-all duration-300 ${
-                        msg.sender === "bot" 
-                          ? "bg-slate-50 border border-slate-100 text-slate-800 rounded-tl-none self-start" 
-                          : "bg-primary text-white rounded-tr-none self-end"
-                      }`}
-                    >
-                      {msg.text}
+                    <div key={i} className={`flex gap-2.5 ${msg.sender === "user" ? "flex-row-reverse" : ""}`}>
+                      {msg.sender === "bot" && (
+                        <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white font-bold text-[10px] shrink-0 mt-auto">
+                          N
+                        </div>
+                      )}
+                      <div
+                        className={`p-3.5 rounded-2xl text-xs leading-relaxed max-w-[80%] whitespace-pre-line shadow-sm transition-all duration-300 ${
+                          msg.sender === "bot"
+                            ? "bg-white border border-slate-100 text-slate-800 rounded-tl-none self-start"
+                            : "bg-primary text-white rounded-tr-none self-end"
+                        }`}
+                      >
+                        {msg.text}
+                        {msg.cta && (
+                          <Link
+                            to={msg.cta.to || "#"}
+                            className="mt-2.5 flex items-center justify-center gap-1.5 bg-slate-900 text-white p-2 rounded-lg text-[11px] font-bold hover:bg-slate-800 transition-colors"
+                          >
+                            {msg.cta.label}
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   ))}
                   {isTyping && (
-                    <div className="bg-slate-50 border border-slate-100 rounded-2xl rounded-tl-none p-3.5 w-14 flex items-center justify-center gap-1.5 self-start shadow-sm">
+                    <div className="bg-white border border-slate-100 rounded-2xl rounded-tl-none p-3.5 w-14 flex items-center justify-center gap-1.5 self-start shadow-sm">
                       <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                       <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
                       <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
@@ -298,39 +365,48 @@ That's it! Everything is fully managed by our operations team.`;
                   )}
                 </div>
 
-                <div className="p-4 bg-white/20 border-t border-white/20 backdrop-blur-md">
-                  <form 
+                {/* Quick actions */}
+                <div className="px-4 pt-3 pb-1 border-t border-slate-100 bg-white shrink-0">
+                  <div className="grid grid-cols-2 gap-2">
+                    {QUICK_ACTIONS.map(({ icon: Icon, label, topic }) => (
+                      <button
+                        key={topic}
+                        type="button"
+                        disabled={isTyping}
+                        onClick={() => handleQuickAction(topic, label)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-semibold text-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
+                      >
+                        <Icon className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span className="truncate">{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Input */}
+                <div className="p-4 bg-white border-t border-slate-100 shrink-0">
+                  <form
                     onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
-                    className="flex items-center gap-2 bg-white/70 border border-slate-200/40 rounded-xl p-1.5 shadow-sm backdrop-blur-sm"
+                    className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-1.5"
                   >
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={inputText}
-                      readOnly
-                      placeholder="Ask how do i use this..."
-                      className="flex-1 bg-transparent border-none text-xs outline-none px-2 py-1.5 text-slate-900 font-semibold cursor-default"
+                      onChange={(e) => setInputText(e.target.value)}
+                      disabled={isTyping}
+                      placeholder="Type your message..."
+                      className="flex-1 bg-transparent border-none text-xs outline-none px-2 py-1.5 text-slate-900 font-semibold"
                     />
-                    <button 
+                    <button
                       type="submit"
                       disabled={isTyping}
-                      className="w-8 h-8 rounded-lg bg-primary hover:opacity-90 disabled:opacity-50 text-white flex items-center justify-center transition-all cursor-pointer border-none"
+                      className="w-8 h-8 rounded-lg bg-primary hover:opacity-90 disabled:opacity-50 text-white flex items-center justify-center transition-all cursor-pointer border-none shrink-0"
                     >
                       <Send className="w-3.5 h-3.5 text-white" />
                     </button>
                   </form>
                 </div>
               </div>
-
-              <p className="text-center text-[10px] text-slate-400 font-semibold mt-3">
-                This is a scripted demo. Want a real person or our live bot?{" "}
-                <button
-                  type="button"
-                  onClick={openLiveChat}
-                  className="text-primary font-bold hover:underline cursor-pointer bg-transparent border-none p-0"
-                >
-                  Chat with the live support agent →
-                </button>
-              </p>
             </motion.div>
           </div>
         </div>
@@ -346,8 +422,8 @@ That's it! Everything is fully managed by our operations team.`;
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
           {FEATURES_DATA.map((feat, idx) => (
-            <motion.div 
-              key={idx} 
+            <motion.div
+              key={idx}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
@@ -428,8 +504,8 @@ That's it! Everything is fully managed by our operations team.`;
           <div className="lg:col-span-7">
             <div className="space-y-4 relative">
               <div className="absolute left-[30px] top-6 bottom-6 w-[2px] bg-slate-100 -z-10" />
-              <div 
-                className="absolute left-[30px] top-6 w-[2px] bg-primary -z-10 transition-all duration-700" 
+              <div
+                className="absolute left-[30px] top-6 w-[2px] bg-primary -z-10 transition-all duration-700"
                 style={{ height: activeWorkflowNode === null ? "0%" : activeWorkflowNode === 0 ? "0%" : activeWorkflowNode === 1 ? "30%" : activeWorkflowNode === 2 ? "65%" : "100%" }}
               />
 
@@ -612,7 +688,7 @@ That's it! Everything is fully managed by our operations team.`;
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
           {CAREERS_PREVIEW.map((role, idx) => (
-            <motion.div 
+            <motion.div
               key={idx}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
