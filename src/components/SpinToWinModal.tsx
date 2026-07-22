@@ -65,6 +65,17 @@ export default function SpinToWinModal() {
   const currentAngleRef = useRef(0);
   const rafRef = useRef<number>(0);
 
+useEffect(() => {
+  if (isOpen) {
+    document.body.style.overflow = "hidden";
+  }
+  return () => {
+    document.body.style.overflow = "";
+  };
+}, [isOpen]);
+
+
+
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 700);
@@ -72,30 +83,6 @@ export default function SpinToWinModal() {
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
-
-  // Lock background scroll while the modal is open, and restore the exact
-  // scroll position on close. Without this, the page underneath the
-  // backdrop could still be dragged/scrolled on touch devices.
-  useEffect(() => {
-    if (!isOpen) return;
-    const prevOverflow = document.body.style.overflow;
-    const prevPosition = document.body.style.position;
-    const prevWidth = document.body.style.width;
-    const scrollY = window.scrollY;
-
-    document.body.style.overflow = "hidden";
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = "100%";
-
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      document.body.style.position = prevPosition;
-      document.body.style.top = "";
-      document.body.style.width = prevWidth;
-      window.scrollTo(0, scrollY);
-    };
-  }, [isOpen]);
 
   const wheelSize = isMobile ? 220 : 320;
 
@@ -325,42 +312,32 @@ ctx.restore();
         * { box-sizing: border-box; }
       `}</style>
 
-      {/* Backdrop — top-aligned and scrollable on mobile so the form/keyboard
-          never traps the user or clips off-screen, and the page behind it
-          can't be dragged since body scroll is locked while open. */}
+      {/* Backdrop */}
       <div style={{
         position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)",
-        zIndex: 10000, display: "flex",
-        alignItems: isMobile ? "flex-start" : "center",
-        justifyContent: "center",
+        zIndex: 9997, display: "flex", alignItems: "center", justifyContent: "center",
         padding: 12,
-        overflowY: "auto",
-        WebkitOverflowScrolling: "touch",
-        paddingTop: isMobile ? "max(24px, env(safe-area-inset-top, 0px))" : 12,
-        paddingBottom: isMobile ? "max(24px, env(safe-area-inset-bottom, 0px))" : 12,
       }}>
         {/* Gradient border */}
         <div style={{
           background: "conic-gradient(from 180deg,#00c6ff,#6d5aff,#ff3cac,#00c6ff)",
           padding: 2, borderRadius: 22,
           boxShadow: "0 0 60px rgba(0,198,255,.25),0 0 120px rgba(109,90,255,.15)",
-          width: "100%", maxWidth: 900,
-          maxHeight: isMobile ? "none" : "calc(100vh - 24px)",
-          flexShrink: 0,
+          width: "100%", maxWidth: "calc(100dvh - 28px)",
+          maxHeight: "calc(100vdh - 28px)",
         }}>
           {/* ─────────────── CARD ─────────────── */}
           <div style={{
             background: "#0b1628", borderRadius: 20,
-            width: "100%",
-            maxHeight: isMobile ? "none" : "calc(100vh - 28px)",
-            overflowY: isMobile ? "visible" : "auto", overflowX: "hidden",
+            width: "100%", maxHeight: "calc(100vh - 28px)",
+            overflowY: "auto", overflowX: "hidden",
             position: "relative",
           }}>
             {/* Close */}
             <button className="close-x" onClick={() => setIsOpen(false)} style={{
               position: "absolute", top: 14, right: 14, zIndex: 30,
               background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.07)",
-              color: "#3f5a7a", fontSize: 15, width: 32, height: 32, borderRadius: "50%",
+              color: "#3f5a7a", fontSize: 15, width: 28, height: 28, borderRadius: "50%",
               cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
               transition: "all .2s",
             }}>✕</button>
@@ -531,16 +508,16 @@ ctx.restore();
                       <input type={type} value={value}
                         onChange={e => { set(e.target.value); setErr(false); extra?.(); }}
                         placeholder={placeholder}
-                        style={{ width:"100%", background:"#071020", border:`1px solid ${err?"#ef4444":"#172844"}`, borderRadius:8, padding:"10px 13px", color:"#e2e8f0", fontSize:16, outline:"none", transition:"border-color .2s" }} />
+                        style={{ width:"100%", background:"#071020", border:`1px solid ${err?"#ef4444":"#172844"}`, borderRadius:8, padding:"10px 13px", color:"#e2e8f0", fontSize:13.5, outline:"none", transition:"border-color .2s" }} />
                     </div>
                   ))}
 
                   <p style={{ fontSize:10, color:"#4b6480", textTransform:"uppercase", letterSpacing:".7px", fontWeight:600, margin:"0 0 8px" }}>Services you're interested in</p>
-                  <div style={{ display:"grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap:"7px 12px", marginBottom:16 }}>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"7px 12px", marginBottom:16 }}>
                     {["Chatbot","Calling Agent","Lead Generation","Automation","Custom","Nothing Specific"].map(s => (
                       <label key={s} style={{ display:"flex", alignItems:"center", gap:8, fontSize:12.5, color:"#6a8aaa", cursor:"pointer", userSelect:"none" }}>
                         <input type="checkbox" checked={services.includes(s)} onChange={() => toggleService(s)}
-                          style={{ accentColor:"#2563eb", width:16, height:16, cursor:"pointer", flexShrink:0 }} />
+                          style={{ accentColor:"#2563eb", width:14, height:14, cursor:"pointer", flexShrink:0 }} />
                         {s}
                       </label>
                     ))}

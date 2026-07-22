@@ -173,9 +173,9 @@ That's it! Everything is fully managed by our operations team.`;
       
       <NeuralBackground />
       
-      <div className="hidden sm:block absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/3 blur-[140px] pointer-events-none rounded-full" />
-      <div className="hidden sm:block absolute top-[20%] right-1/4 w-[600px] h-[600px] bg-indigo-500/2 blur-[150px] pointer-events-none rounded-full" />
-      <div className="hidden sm:block absolute bottom-[20%] left-1/3 w-[700px] h-[700px] bg-purple-500/2 blur-[160px] pointer-events-none rounded-full" />
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/3 blur-[140px] pointer-events-none rounded-full" />
+      <div className="absolute top-[20%] right-1/4 w-[600px] h-[600px] bg-indigo-500/2 blur-[150px] pointer-events-none rounded-full" />
+      <div className="absolute bottom-[20%] left-1/3 w-[700px] h-[700px] bg-purple-500/2 blur-[160px] pointer-events-none rounded-full" />
 
       <Navbar />
       <SpinToWinModal />
@@ -183,25 +183,13 @@ That's it! Everything is fully managed by our operations team.`;
       {/* Hero Section */}
       <section className="relative pt-32 md:pt-40 pb-28 px-6 overflow-hidden border-b border-slate-200/50 bg-slate-50/50">
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-100">
-          {/* Static image on mobile: avoids pulling down the 4.9MB hero
-              video over cellular data and keeps LCP fast on phones.
-              Also respects prefers-reduced-motion for anyone who has
-              that turned on, on any screen size. */}
-          <img
-            src="/landing_hero.png"
-            alt=""
-            className="w-full h-full object-cover md:hidden motion-reduce:block motion-reduce:!block"
-            fetchPriority="high"
-          />
-          <video
-            src="/HeroBackground.mp4"
-            autoPlay
-            loop
-            muted
+          <video 
+            src="/HeroBackground.mp4" 
+            autoPlay 
+            loop 
+            muted 
             playsInline
-            preload="none"
-            poster="/landing_hero.png"
-            className="hidden md:block w-full h-full object-cover motion-reduce:!hidden"
+            className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/40 to-background" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,var(--color-background)_95%)]" />
@@ -311,27 +299,19 @@ That's it! Everything is fully managed by our operations team.`;
                     onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
                     className="flex items-center gap-2 bg-white/70 border border-slate-200/40 rounded-xl p-1.5 shadow-sm backdrop-blur-sm"
                   >
-                    {/* This field is intentionally a fixed demo prompt (readOnly) —
-                        tapping Send always tries the same canned question so the
-                        reply is predictable. text-slate-900 (not a muted/greyed
-                        tone) plus a visible cursor keeps it from reading as a
-                        broken/disabled input on mobile. */}
                     <input 
                       type="text" 
                       value={inputText}
                       readOnly
-                      aria-label="Demo question (tap Send to try it)"
                       placeholder="Ask how do i use this..."
-                      className="flex-1 bg-transparent border-none text-xs sm:text-sm outline-none px-2 py-2 text-slate-900 font-semibold cursor-pointer"
-                      onClick={() => !isTyping && handleSendMessage()}
+                      className="flex-1 bg-transparent border-none text-xs outline-none px-2 py-1.5 text-slate-900 font-semibold cursor-default"
                     />
                     <button 
                       type="submit"
                       disabled={isTyping}
-                      aria-label="Send message"
-                      className="h-11 w-11 shrink-0 rounded-lg bg-primary hover:opacity-90 active:scale-95 disabled:opacity-50 text-white flex items-center justify-center transition-all cursor-pointer border-none"
+                      className="w-8 h-8 rounded-lg bg-primary hover:opacity-90 disabled:opacity-50 text-white flex items-center justify-center transition-all cursor-pointer border-none"
                     >
-                      <Send className="w-4 h-4 text-white" />
+                      <Send className="w-3.5 h-3.5 text-white" />
                     </button>
                   </form>
                 </div>

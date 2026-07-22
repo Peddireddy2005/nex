@@ -12,7 +12,7 @@ export default function Terms() {
   });
 
   return (
-    <div className="min-h-screen bg-white p-6 md:p-16 lg:p-24 font-sans selection:bg-blue-500/20 text-left">
+    <div className="min-h-screen bg-white p-6 md:p-16 lg:p-24 font-sans selection:bg-blue-500/20 text-left overflow-x-hidden">
       <div className="max-w-4xl mx-auto">
         {/* Back Link */}
         <Link to="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-16 text-xs font-bold uppercase tracking-wider font-mono">

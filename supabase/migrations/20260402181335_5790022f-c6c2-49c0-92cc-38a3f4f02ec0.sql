@@ -1,1 +1,0 @@
-ALTER TABLE performance_ratings DROP CONSTRAINT performance_ratings_rating_check;

@@ -42,9 +42,15 @@ export default function Support() {
     keywords: "Nexubotics support, virtual AI assistant support, customer support chatbot, contact Nexubotics"
   });
 
-  useEffect(() => {
-    mainMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isChatLoading]);
+const isFirstRender = useRef(true);
+
+useEffect(() => {
+  if (isFirstRender.current) {
+    isFirstRender.current = false;
+    return;
+  }
+  mainMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+}, [messages, isChatLoading]);
 
   useEffect(() => {
     if (isChatOpen) {

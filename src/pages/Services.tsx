@@ -111,7 +111,7 @@ export default function Services() {
   });
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary font-sans bg-grid">
+    <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary font-sans bg-grid overflow-x-hidden">
       <Navbar />
 
       {/* Header Banner */}

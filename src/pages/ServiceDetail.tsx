@@ -94,7 +94,7 @@ export default function ServiceDetail() {
 
   if (!service) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col justify-between font-sans">
+      <div className="min-h-screen bg-background text-foreground selection:bg-primary/20 selection:text-primary font-sans bg-grid overflow-x-hidden">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center text-center p-6 space-y-4">
            <HelpCircle className="w-12 h-12 text-primary animate-bounce" />
