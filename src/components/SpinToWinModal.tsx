@@ -1,21 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
 import { supabase } from "../lib/supabase";
+import { useLenis } from "./SmoothScroll";
 
 const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const EMAILJS_CUSTOMER_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_CUSTOMER_TEMPLATE_ID;
 const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
-  /*{ label: "5% OFF",  color: "#1a4a8a", accent: "#2563eb", text: "#93c5fd" },
-  { label: "10% OFF", color: "#14532d", accent: "#16a34a", text: "#86efac" },
-  { label: "15% OFF", color: "#7c2d12", accent: "#c2410c", text: "#fdba74" },
-  { label: "30% OFF", color: "#4a1d96", accent: "#7c3aed", text: "#c4b5fd" },
-  { label: "FREE BOT", color: "#7f1d1d", accent: "#b91c1c", text: "#fde68a", isFree: true },
-  { label: "FREE BOT", color: "#A16207", accent: "#FACC15", text: "#FFFFFF", isFree: true }, 
-  { label: "25% OFF", color: "#164e63", accent: "#0e7490", text: "#67e8f9" },*/ 
-  const SEGS = [
-     { label: "FREE BOT", color: "#B91C1C", accent: "#F87171", text: "#FFFFFF", isFree: true },
-    
+const SEGS = [
+   { label: "FREE BOT", color: "#B91C1C", accent: "#F87171", text: "#FFFFFF", isFree: true },
   { label: "10% OFF", color: "#16A34A", accent: "#4ADE80", text: "#FFFFFF" },
   { label: "15% OFF", color: "#EA580C", accent: "#FB923C", text: "#FFFFFF" },
   { label: "30% OFF", color: "#7C3AED", accent: "#A78BFA", text: "#FFFFFF" },
@@ -26,6 +19,9 @@ const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 const SLICE = (Math.PI * 2) / SEGS.length;
 const probs = [0.00, 0.25, 0.60, 0.10, 0.05, 0.00];
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// z-index kept well above the ChatWidget iframe (z: 9999) and StickyCTA (z: 50)
+const MODAL_Z_INDEX = 100000;
 
 function generateCouponCode(prize: string): string {
   const prefix = prize.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 6);
@@ -65,26 +61,36 @@ export default function SpinToWinModal() {
   const currentAngleRef = useRef(0);
   const rafRef = useRef<number>(0);
 
-useEffect(() => {
-  if (isOpen) {
-    document.body.style.overflow = "hidden";
-  }
-  return () => {
-    document.body.style.overflow = "";
-  };
-}, [isOpen]);
+  const lenisRef = useLenis();
 
-
+  // Lock the page scroll while the modal is open. Locking body overflow alone
+  // is NOT enough because this site uses Lenis for smooth-scroll, which
+  // scrolls independently of native browser scroll and ignores
+  // `overflow: hidden` on the body. We have to explicitly stop/start Lenis.
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add("overflow-locked");
+      lenisRef?.current?.stop();
+    }
+    return () => {
+      document.body.classList.remove("overflow-locked");
+      lenisRef?.current?.start();
+    };
+  }, [isOpen, lenisRef]);
 
   const [isMobile, setIsMobile] = useState(false);
+  const [isTiny, setIsTiny] = useState(false);
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 700);
+    const check = () => {
+      setIsMobile(window.innerWidth < 700);
+      setIsTiny(window.innerWidth < 380 || window.innerHeight < 700);
+    };
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  const wheelSize = isMobile ? 220 : 320;
+  const wheelSize = isTiny ? 170 : isMobile ? 208 : 320;
 
   const drawWheel = (angle: number) => {
     const canvas = canvasRef.current;
@@ -110,91 +116,51 @@ useEffect(() => {
       ctx.beginPath(); ctx.arc(R, R, R - 2, start, end);
       ctx.strokeStyle = seg.accent + "66"; ctx.lineWidth = 3; ctx.stroke();
 
-ctx.shadowBlur = 0;
+      ctx.shadowBlur = 0;
       ctx.beginPath();
       ctx.arc(R + Math.cos(mid) * (R - 10), R + Math.sin(mid) * (R - 10), 4, 0, Math.PI * 2);
       ctx.fillStyle = seg.text; ctx.fill();
       ctx.save();
       ctx.translate(R, R); ctx.rotate(mid); ctx.translate(R * 0.58, 0); ctx.rotate(Math.PI / 2);
-      
-        /*if (seg.isFree) {
-  ctx.font = `900 ${Math.round(14 * scale)}px Syne, sans-serif`;
 
- ctx.fillStyle = "#FFFFFF";
-  ctx.strokeStyle = "#FFF8DC";
-  ctx.lineWidth = 1.5;
-
-  ctx.textAlign = "center";
-
- ctx.shadowColor = "#FFD700";
-ctx.shadowBlur = 25;
-
-  ctx.strokeText("FREE", 0, -8 * scale);
-  ctx.fillText("FREE", 0, -8 * scale);
-
-  ctx.font = `900 ${Math.round(12 * scale)}px DM Sans, sans-serif`;
-
-  ctx.strokeText("1ST BOT", 0, 10 * scale);
-  ctx.fillText("1ST BOT", 0, 10 * scale);
-        
-} else {
-  const parts = seg.label.split(" ");
-
-  ctx.font = `bold ${Math.round(13 * scale)}px Syne, sans-serif`;
-  ctx.fillStyle = seg.text;
-  ctx.textAlign = "center";
-
-  ctx.shadowColor = seg.text;
-  ctx.shadowBlur = 6;
-
-  ctx.fillText(parts[0], 0, -5 * scale);
-
-  ctx.font = `600 ${Math.round(10 * scale)}px DM Sans, sans-serif`;
-
-  ctx.shadowBlur = 3;
-  ctx.fillText(parts[1] || "", 0, 8 * scale);
-          ctx.restore();
-      
-}*/
       if (seg.isFree) {
-  ctx.font = `900 ${Math.round(14 * scale)}px Syne, sans-serif`;
-  ctx.fillStyle = "#FFFFFF";
-  ctx.textAlign = "center";
+        ctx.font = `900 ${Math.round(14 * scale)}px Syne, sans-serif`;
+        ctx.fillStyle = "#FFFFFF";
+        ctx.textAlign = "center";
 
-  ctx.shadowColor = "#FFD700";
-  ctx.shadowBlur = 12;
+        ctx.shadowColor = "#FFD700";
+        ctx.shadowBlur = 12;
 
-  ctx.fillText("FREE", 0, -10 * scale);
+        ctx.fillText("FREE", 0, -10 * scale);
 
-  ctx.font = `900 ${Math.round(12 * scale)}px Syne, sans-serif`;
-  ctx.fillText("1ST BOT", 0, 12 * scale);
+        ctx.font = `900 ${Math.round(12 * scale)}px Syne, sans-serif`;
+        ctx.fillText("1ST BOT", 0, 12 * scale);
 
-} else {
-  const parts = seg.label.split(" ");
+      } else {
+        const parts = seg.label.split(" ");
 
-  ctx.font = `800 ${Math.round(18 * scale)}px Syne, sans-serif`;
-  ctx.fillStyle = seg.text;
-  ctx.textAlign = "center";
+        ctx.font = `800 ${Math.round(18 * scale)}px Syne, sans-serif`;
+        ctx.fillStyle = seg.text;
+        ctx.textAlign = "center";
 
-  ctx.shadowColor = seg.text;
-  ctx.shadowBlur = 6;
+        ctx.shadowColor = seg.text;
+        ctx.shadowBlur = 6;
 
-  ctx.fillText(parts[0], 0, -5 * scale);
+        ctx.fillText(parts[0], 0, -5 * scale);
 
-  ctx.font = `700 ${Math.round(14 * scale)}px DM Sans, sans-serif`;
-  ctx.shadowBlur = 3;
+        ctx.font = `700 ${Math.round(14 * scale)}px DM Sans, sans-serif`;
+        ctx.shadowBlur = 3;
 
-  ctx.fillText(parts[1] || "", 0, 8 * scale);
-}
+        ctx.fillText(parts[1] || "", 0, 8 * scale);
+      }
 
-ctx.restore();
-        //===================//
+      ctx.restore();
     });
     ctx.beginPath(); ctx.arc(R, R, 24 * scale, 0, Math.PI * 2);
     ctx.strokeStyle = "rgba(255,255,255,0.08)"; ctx.lineWidth = 2; ctx.stroke();
   };
 
-  useEffect(() => { drawWheel(0); }, [wheelSize]);
+  useEffect(() => { drawWheel(currentAngleRef.current); }, [wheelSize]);
 
   const saveToDatabase = async (wonPrize: string, code: string) => {
     const { error } = await supabase.from("spin_leads").insert({
@@ -309,37 +275,41 @@ ctx.restore();
         .copy-btn:hover { background: rgba(0,198,255,0.15) !important; }
         .coupon-box { animation: pulse-glow 2s infinite; }
         .fadein { animation: fadeInUp 0.4s ease forwards; }
+        .spin-modal-scroll::-webkit-scrollbar { width: 6px; }
+        .spin-modal-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
         * { box-sizing: border-box; }
       `}</style>
 
       {/* Backdrop */}
       <div style={{
         position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)",
-        zIndex: 9997, display: "flex", alignItems: "center", justifyContent: "center",
-        padding: 12,
+        zIndex: MODAL_Z_INDEX, display: "flex", alignItems: "center", justifyContent: "center",
+        padding: isTiny ? 8 : 12,
       }}>
         {/* Gradient border */}
         <div style={{
           background: "conic-gradient(from 180deg,#00c6ff,#6d5aff,#ff3cac,#00c6ff)",
           padding: 2, borderRadius: 22,
           boxShadow: "0 0 60px rgba(0,198,255,.25),0 0 120px rgba(109,90,255,.15)",
-          width: "100%", maxWidth: "calc(100dvh - 28px)",
-          maxHeight: "calc(100vdh - 28px)",
+          width: "100%",
+          maxWidth: isMobile ? "100%" : 720,
+          maxHeight: "calc(100dvh - 16px)",
         }}>
           {/* ─────────────── CARD ─────────────── */}
-          <div style={{
+          <div className="spin-modal-scroll" style={{
             background: "#0b1628", borderRadius: 20,
-            width: "100%", maxHeight: "calc(100vh - 28px)",
+            width: "100%", maxHeight: "calc(100dvh - 16px)",
             overflowY: "auto", overflowX: "hidden",
             position: "relative",
+            WebkitOverflowScrolling: "touch",
           }}>
             {/* Close */}
             <button className="close-x" onClick={() => setIsOpen(false)} style={{
-              position: "absolute", top: 14, right: 14, zIndex: 30,
-              background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.07)",
-              color: "#3f5a7a", fontSize: 15, width: 28, height: 28, borderRadius: "50%",
+              position: "sticky", top: 12, float: "right", marginRight: 12, zIndex: 30,
+              background: "rgba(11,22,40,0.85)", border: "1px solid rgba(255,255,255,.1)",
+              color: "#7dd3fc", fontSize: 15, width: 32, height: 32, borderRadius: "50%",
               cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-              transition: "all .2s",
+              transition: "all .2s", backdropFilter: "blur(6px)",
             }}>✕</button>
 
             {/* ══════════ SUCCESS VIEW — replaces everything ══════════ */}
@@ -348,9 +318,10 @@ ctx.restore();
                 display: "flex", flexDirection: "column",
                 alignItems: "center", justifyContent: "center",
                 textAlign: "center",
-                padding: isMobile ? "48px 20px 36px" : "56px 50px 48px",
+                padding: isTiny ? "16px 16px 28px" : isMobile ? "20px 18px 32px" : "40px 50px 48px",
+                marginTop: isTiny ? -32 : -32,
                 background: "linear-gradient(135deg,#070f20 0%,#0b1628 60%,#0d1f3c 100%)",
-                borderRadius: 20, minHeight: 400,
+                borderRadius: 20, minHeight: isMobile ? "auto" : 400,
                 position: "relative", overflow: "hidden",
               }}>
                 {/* Glow blobs */}
@@ -359,25 +330,25 @@ ctx.restore();
 
                 <div style={{ width:"100%", maxWidth:400, position:"relative", zIndex:1 }}>
                   <div style={{
-                    width:64, height:64, borderRadius:"50%",
+                    width:56, height:56, borderRadius:"50%",
                     background:"rgba(0,198,255,.08)", border:"1.5px solid rgba(0,198,255,.3)",
                     display:"flex", alignItems:"center", justifyContent:"center",
-                    margin:"0 auto 14px", fontSize:28,
+                    margin:"0 auto 14px", fontSize:26,
                   }}>{existingClaim ? "👋" : "🏆"}</div>
 
-                  <h2 style={{ fontFamily:"Syne,sans-serif", fontSize:isMobile?22:26, fontWeight:800, color:"#f0f8ff", margin:"0 0 6px" }}>
+                  <h2 style={{ fontFamily:"Syne,sans-serif", fontSize:isTiny?19:isMobile?21:26, fontWeight:800, color:"#f0f8ff", margin:"0 0 6px" }}>
                     {existingClaim ? "Welcome Back!" : "Reward Unlocked!"}
                   </h2>
-                  <p style={{ fontSize:13, color:"#3f5a7a", margin:"0 0 18px" }}>
+                  <p style={{ fontSize:12.5, color:"#3f5a7a", margin:"0 0 18px" }}>
                     {existingClaim ? "You've already claimed your Nexubotics reward" : "You won an exclusive Nexubotics discount"}
                   </p>
 
                   {/* Prize badge */}
                   <div style={{
-                    padding:"10px 20px", borderRadius:10, marginBottom:20,
+                    padding:"10px 18px", borderRadius:10, marginBottom:18,
                     background: prize?.isFree ? "rgba(253,230,138,.08)" : "rgba(0,198,255,.08)",
                     border:`1px solid ${prize?.isFree ? "rgba(253,230,138,.3)" : "rgba(0,198,255,.3)"}`,
-                    fontFamily:"Syne,sans-serif", fontSize:isMobile?18:22, fontWeight:800,
+                    fontFamily:"Syne,sans-serif", fontSize:isTiny?16:isMobile?17:22, fontWeight:800,
                     color: prize?.isFree ? "#fde68a" : "#00c6ff",
                   }}>{prize?.label}</div>
 
@@ -386,16 +357,16 @@ ctx.restore();
                   {/* Coupon box */}
                   <div className="coupon-box" style={{
                     background:"#060d1a", border:"2px dashed rgba(0,198,255,0.5)",
-                    borderRadius:12, padding:"16px", marginBottom:12,
+                    borderRadius:12, padding:"14px", marginBottom:12,
                     display:"flex", flexDirection:"column", alignItems:"center", gap:10,
                   }}>
                     <span style={{
-                      fontFamily:"monospace", fontSize:isMobile?20:24, fontWeight:800,
-                      color:"#00c6ff", letterSpacing:3, wordBreak:"break-all", textAlign:"center",
+                      fontFamily:"monospace", fontSize:isTiny?15:isMobile?17:24, fontWeight:800,
+                      color:"#00c6ff", letterSpacing: isMobile ? 1.5 : 3, wordBreak:"break-all", textAlign:"center",
                     }}>{couponCode}</span>
                     <button className="copy-btn" onClick={copyCode} style={{
                       background:"rgba(0,198,255,0.08)", border:"1px solid rgba(0,198,255,0.3)",
-                      color: copied?"#34d399":"#7dd3fc", borderRadius:8, padding:"8px 32px",
+                      color: copied?"#34d399":"#7dd3fc", borderRadius:8, padding:"10px 32px",
                       cursor:"pointer", fontSize:12, fontWeight:700, letterSpacing:0.5,
                       transition:"all .2s", width:"100%",
                     }}>
@@ -420,7 +391,7 @@ ctx.restore();
                     </div>
                   )}
 
-                  <p style={{ fontSize:10, color:"#2a3f55", margin:"0 0 22px", lineHeight:1.6 }}>
+                  <p style={{ fontSize:10, color:"#2a3f55", margin:"0 0 20px", lineHeight:1.6 }}>
                     Valid for 30 days · Applicable on all Nexubotics services<br/>
                     Show this code during your strategy call or booking
                   </p>
@@ -439,24 +410,25 @@ ctx.restore();
               <div style={{
                 display:"flex",
                 flexDirection: isMobile ? "column" : "row",
+                clear: "both",
               }}>
                 {/* Wheel panel */}
                 <div style={{
                   display:"flex", alignItems:"center", justifyContent:"center",
-                  padding: isMobile ? "28px 16px 10px" : "30px 20px",
+                  padding: isTiny ? "4px 16px 8px" : isMobile ? "8px 16px 6px" : "30px 20px",
                   flexShrink:0,
                 }}>
                   <div style={{ position:"relative", width:wheelSize, height:wheelSize }}>
-                    <div style={{ position:"absolute", inset: isMobile?-10:-14, borderRadius:"50%", background:"conic-gradient(from 0deg,#00c6ff,#6d5aff,#ff3cac,#ffe53b,#00c6ff)", animation:"spin-ring 8s linear infinite" }} />
-                    <div style={{ position:"absolute", inset: isMobile?-5:-8, borderRadius:"50%", background:"#0b1628" }} />
+                    <div style={{ position:"absolute", inset: isMobile?-8:-14, borderRadius:"50%", background:"conic-gradient(from 0deg,#00c6ff,#6d5aff,#ff3cac,#ffe53b,#00c6ff)", animation:"spin-ring 8s linear infinite" }} />
+                    <div style={{ position:"absolute", inset: isMobile?-4:-8, borderRadius:"50%", background:"#0b1628" }} />
                     <div style={{ position:"absolute", inset: isMobile?-2:-3, borderRadius:"50%", background:"conic-gradient(from 180deg,#1a3a5c,#0d2040,#1a3a5c)", boxShadow:"inset 0 0 30px rgba(0,0,0,.8)" }} />
                     <canvas ref={canvasRef} width={wheelSize} height={wheelSize}
                       style={{ position:"relative", zIndex:2, borderRadius:"50%", display:"block", filter:"drop-shadow(0 0 18px rgba(0,198,255,.3))" }} />
                     {/* Arrow */}
                     <div style={{ position:"absolute", top: isMobile?-3:-4, left:"50%", transform:"translateX(-50%)", zIndex:20, width:0, height:0,
-                      borderLeft:`${isMobile?9:13}px solid transparent`,
-                      borderRight:`${isMobile?9:13}px solid transparent`,
-                      borderTop:`${isMobile?22:32}px solid #fff`,
+                      borderLeft:`${isMobile?8:13}px solid transparent`,
+                      borderRight:`${isMobile?8:13}px solid transparent`,
+                      borderTop:`${isMobile?18:32}px solid #fff`,
                       filter:"drop-shadow(0 2px 8px rgba(255,255,255,.5))",
                     }} />
                     {/* Hub */}
@@ -477,7 +449,7 @@ ctx.restore();
                 {/* Form panel */}
                 <div style={{
                   flex:1, minWidth:0,
-                  padding: isMobile ? "8px 16px 28px" : "40px 36px 40px 20px",
+                  padding: isTiny ? "4px 16px 22px" : isMobile ? "4px 18px 26px" : "40px 36px 40px 20px",
                   display:"flex", flexDirection:"column", justifyContent:"center",
                   position:"relative",
                 }}>
@@ -485,10 +457,10 @@ ctx.restore();
 
                   <div style={{ display:"inline-flex", alignItems:"center", gap:6, background:"rgba(0,198,255,.08)", border:"1px solid rgba(0,198,255,.2)", color:"#7dd3fc", fontSize:10, fontWeight:600, padding:"4px 11px", borderRadius:20, letterSpacing:".7px", textTransform:"uppercase", marginBottom:isMobile?8:12, width:"fit-content" }}>✦ Aura Rewards</div>
 
-                  <h1 style={{ fontFamily:"Syne,sans-serif", fontSize:isMobile?24:34, fontWeight:800, color:"#f0f8ff", lineHeight:1.1, margin:"0 0 6px", letterSpacing:"-.5px" }}>
+                  <h1 style={{ fontFamily:"Syne,sans-serif", fontSize:isTiny?20:isMobile?24:34, fontWeight:800, color:"#f0f8ff", lineHeight:1.1, margin:"0 0 6px", letterSpacing:"-.5px" }}>
                     Spin to <span style={{ background:"linear-gradient(90deg,#00c6ff,#6d5aff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Win Big!</span>
                   </h1>
-                  <p style={{ fontSize:12, color:"#3f5a7a", margin:"0 0 14px", lineHeight:1.6 }}>
+                  <p style={{ fontSize:11.5, color:"#3f5a7a", margin:"0 0 14px", lineHeight:1.6 }}>
                     Enter your details, then spin the wheel for an exclusive Nexubotics reward.
                   </p>
 
@@ -508,23 +480,23 @@ ctx.restore();
                       <input type={type} value={value}
                         onChange={e => { set(e.target.value); setErr(false); extra?.(); }}
                         placeholder={placeholder}
-                        style={{ width:"100%", background:"#071020", border:`1px solid ${err?"#ef4444":"#172844"}`, borderRadius:8, padding:"10px 13px", color:"#e2e8f0", fontSize:13.5, outline:"none", transition:"border-color .2s" }} />
+                        style={{ width:"100%", background:"#071020", border:`1px solid ${err?"#ef4444":"#172844"}`, borderRadius:8, padding:"11px 13px", color:"#e2e8f0", fontSize:16, outline:"none", transition:"border-color .2s" }} />
                     </div>
                   ))}
 
                   <p style={{ fontSize:10, color:"#4b6480", textTransform:"uppercase", letterSpacing:".7px", fontWeight:600, margin:"0 0 8px" }}>Services you're interested in</p>
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"7px 12px", marginBottom:16 }}>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px 12px", marginBottom:16 }}>
                     {["Chatbot","Calling Agent","Lead Generation","Automation","Custom","Nothing Specific"].map(s => (
                       <label key={s} style={{ display:"flex", alignItems:"center", gap:8, fontSize:12.5, color:"#6a8aaa", cursor:"pointer", userSelect:"none" }}>
                         <input type="checkbox" checked={services.includes(s)} onChange={() => toggleService(s)}
-                          style={{ accentColor:"#2563eb", width:14, height:14, cursor:"pointer", flexShrink:0 }} />
+                          style={{ accentColor:"#2563eb", width:16, height:16, cursor:"pointer", flexShrink:0 }} />
                         {s}
                       </label>
                     ))}
                   </div>
 
                   <button className="spin-btn" onClick={handleSpin} disabled={spinning||checkingEmail} style={{
-                    width:"100%", padding:13,
+                    width:"100%", padding:14,
                     background:"linear-gradient(90deg,#1a3dbf,#2563eb)",
                     border:"1px solid rgba(0,198,255,.4)", color:"#e8f4ff",
                     fontSize:13, fontWeight:700, letterSpacing:"1.2px", borderRadius:9,

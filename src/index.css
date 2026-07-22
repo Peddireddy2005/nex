@@ -47,13 +47,23 @@
   * {
     @apply border-border;
   }
-  body {
+  html, body {
     @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary font-sans;
     overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply text-slate-900 font-display font-bold not-italic tracking-tight;
   }
+}
+
+/* Applied by SpinToWinModal / any modal while open, to fully lock the page
+   (works alongside Lenis being stopped in JS) */
+body.overflow-locked {
+  overflow: hidden !important;
+  height: 100vh;
+  touch-action: none;
 }
 
 @layer components {
@@ -79,7 +89,8 @@
     box-shadow: 0 12px 30px -5px rgba(37, 99, 235, 0.06) !important;
   }
 
-  /* Liquid Glass Utilities simplified to crisp, modern flat elements */
+  /* Liquid Glass Utilities - kept fully solid/opaque on ALL screen sizes so
+     the Navbar never lets page content show through while scrolling on mobile. */
   .liquid-glass {
     background: #ffffff !important;
     border: 1px solid rgba(9, 13, 31, 0.08) !important;
@@ -134,17 +145,10 @@
     font-weight: 400;
   }
 
-  @media (max-width: 768px) {
-    .glass {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
-    }
-    .glass-card {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
-    }
-    .liquid-glass {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
-    }
-  }
+  /* NOTE: removed the old `@media (max-width: 768px)` block that reset
+     .glass / .glass-card / .liquid-glass to a semi-transparent gradient.
+     That override was the reason page content was visible behind the
+     Navbar (and other glass surfaces) while scrolling on mobile. */
 }
 
 
@@ -208,4 +212,3 @@
 .group:hover .group-hover-wiggle {
   animation: wiggle 0.5s ease-in-out infinite;
 }
-
