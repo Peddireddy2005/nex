@@ -46,13 +46,16 @@ export default function ChatWidget() {
         position: "fixed",
         bottom: 0,
         right: 0,
-        width: expanded ? "450px" : "130px",
-        height: expanded ? "770px" : "180px",
+        // Clamp to viewport so it never overflows on small screens
+        width: expanded ? "min(450px, 100vw)" : "min(130px, 40vw)",
+        height: expanded ? "min(770px, 100dvh)" : "min(180px, 30dvh)",
         maxWidth: "100vw",
-        maxHeight: "100vh",
+        maxHeight: "100dvh",
         border: "none",
         background: "transparent",
         zIndex: 9999,
+        // Stops scroll from chaining out to the page behind it
+        overscrollBehavior: "contain",
         transition: "width 0.15s ease, height 0.15s ease",
       }}
     />
