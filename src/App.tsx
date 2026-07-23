@@ -13,9 +13,7 @@ import Apply from "./pages/Apply";
 import SmoothScroll from "./components/SmoothScroll";
 import StickyCTA from "./components/StickyCTA";
 import ScrollToTop from "./components/ScrollToTop";
-import ChatWidget from "./components/ChatWidget";
 import SpinToWinModal from "./components/SpinToWinModal";
-
 export default function App() {
   return (
     <Router>
@@ -37,7 +35,6 @@ export default function App() {
         <StickyCTA />
       </SmoothScroll>
       <Toaster />
-      <ChatWidget />
       <SpinToWinModal />
     </Router>
   );

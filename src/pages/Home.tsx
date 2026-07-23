@@ -17,18 +17,12 @@ import {
   Sparkles,
   RefreshCw,
   Terminal as TermIcon,
-  Send,
   Database,
   Mail,
   User,
   Briefcase,
   MapPin,
-  Clock,
-  Phone,
-  Settings,
-  Bot,
-  Tag,
-  HeartHandshake
+  Clock
 } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
@@ -85,20 +79,6 @@ function NeuralBackground() {
   return null;
 }
 
-// ------------------------------------------------------------------
-// Quick action buttons shown on the "chat with our AI assistant" promo
-// card. Every action just opens the real live chat widget (see
-// ChatWidget.tsx) instead of faking a scripted conversation.
-// ------------------------------------------------------------------
-const QUICK_ACTIONS = [
-  { icon: Phone, label: "Book a Call", topic: "book" },
-  { icon: MessageSquare, label: "AI Chatbots", topic: "chatbots" },
-  { icon: Settings, label: "AI Automation", topic: "automation" },
-  { icon: Bot, label: "AI Agents", topic: "agents" },
-  { icon: Tag, label: "Pricing", topic: "pricing" },
-  { icon: HeartHandshake, label: "Human Assistance", topic: "human" }
-] as const;
-
 export default function Home() {
   useSEO({
     title: "Nexubotics - Smarter Workflows. Faster Growth. Powered by AI.",
@@ -129,12 +109,6 @@ export default function Home() {
       setActiveWorkflowNode(4);
       setIsRunningWorkflow(false);
     }, 6800);
-  };
-
-  // Opens the REAL live chatbot (the widget floating bottom-right on every
-  // page).
-  const openLiveChat = () => {
-    window.dispatchEvent(new CustomEvent("nexubotics:open-chat"));
   };
 
   const FEATURES_DATA = [
@@ -227,8 +201,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Chat With Our AI Assistant Section (static promo card that opens
-          the real live chat widget instead of a scripted demo) */}
+      {/* Chat With Our AI Assistant Section — embeds the live Nexubotics
+          chatbot directly on the page (this is the chat fix: no more relying
+          on the floating widget's flaky open/close postMessage handshake). */}
       <section className="py-20 px-6 max-w-7xl mx-auto border-b border-slate-200/50 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-5 space-y-6 text-left">
@@ -237,7 +212,7 @@ export default function Home() {
               <span className="text-brand-gradient">AI assistant.</span>
             </h2>
             <p className="text-slate-600 text-sm leading-relaxed font-normal">
-              Experience the speed, style, and intelligence of our chatbot interfaces instantly. Open the live assistant in the bottom-right corner and ask it anything.
+              Experience the speed, style, and intelligence of our chatbot interfaces instantly. Ask it about our services, pricing, or how to get started.
             </p>
           </div>
 
@@ -247,43 +222,16 @@ export default function Home() {
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.7, ease: "easeOut" }}
-              className="max-w-100 w-full"
+              className="max-w-[400px] w-full"
             >
-              <div className="rounded-3xl relative overflow-hidden bg-white border border-slate-200/60 shadow-2xl p-8 md:p-10 flex flex-col items-center text-center gap-6">
-                <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-primary/20 shrink-0">
-                  N
-                </div>
-
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-slate-900 font-display">
-                    Chat with our AI assistant
-                  </h3>
-                  <p className="text-slate-600 text-sm leading-relaxed">
-                    Ask about chatbots, automation, voice agents, or pricing.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
-                  {QUICK_ACTIONS.map(({ icon: Icon, label }) => (
-                    <button
-                      key={label}
-                      type="button"
-                      onClick={openLiveChat}
-                      className="flex items-center gap-2 px-3 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
-                    >
-                      <Icon className="w-3.5 h-3.5 text-primary shrink-0" />
-                      <span className="truncate">{label}</span>
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={openLiveChat}
-                  className="w-full max-w-sm h-11 bg-primary hover:bg-primary/95 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md border-none"
-                >
-                  <Send className="w-4 h-4" /> Open Live Chat
-                </button>
+              <div className="liquid-glass rounded-[28px] relative overflow-hidden h-[440px] w-full z-10">
+                <div className="absolute top-0 left-0 w-full h-1 bg-brand-gradient z-10" />
+                <iframe
+                  src="https://nexubotics-chatbot.vercel.app/?mode=embed"
+                  title="Nexubotics AI Assistant"
+                  allow="clipboard-write"
+                  className="w-full h-full border-none bg-transparent"
+                />
               </div>
             </motion.div>
           </div>

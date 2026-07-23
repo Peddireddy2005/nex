@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Mail, HelpCircle, CheckCircle2, MessageSquare, Send, Bot, Loader2, Phone, ShieldCheck, Settings, Tag, HeartHandshake } from "lucide-react";
+import { Mail, HelpCircle, CheckCircle2, Send, Loader2, Phone, ShieldCheck } from "lucide-react";
 import useSEO from "../hooks/useSEO";
 import {
   Accordion,
@@ -16,15 +16,6 @@ import { Label } from "@/components/ui/label";
 import { SUPPORT_EMAIL } from "@/constants";
 import { toast } from "sonner";
 
-const QUICK_ACTIONS = [
-  { icon: Phone, label: "Book a Call", topic: "book" },
-  { icon: MessageSquare, label: "AI Chatbots", topic: "chatbots" },
-  { icon: Settings, label: "AI Automation", topic: "automation" },
-  { icon: Bot, label: "AI Agents", topic: "agents" },
-  { icon: Tag, label: "Pricing", topic: "pricing" },
-  { icon: HeartHandshake, label: "Human Assistance", topic: "human" }
-] as const;
-
 export default function Support() {
   // Form states for contact form
   const [contactName, setContactName] = useState("");
@@ -38,11 +29,6 @@ export default function Support() {
     description: "Get instant answers from our AI assistant, message our direct WhatsApp line, or submit a support request. We're here to help you scale.",
     keywords: "Nexubotics support, virtual AI assistant support, customer support chatbot, contact Nexubotics"
   });
-
-  // Opens the REAL live chatbot (floating bottom-right on every page).
-  const openLiveChat = () => {
-    window.dispatchEvent(new CustomEvent("nexubotics:open-chat"));
-  };
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,42 +109,17 @@ export default function Support() {
                 </p>
               </div>
 
-              {/* Live chat promo card (replaces the old scripted demo chat) */}
-              <div className="rounded-3xl relative overflow-hidden bg-white border border-slate-200/60 shadow-xl p-8 md:p-10 flex flex-col items-center text-center gap-6">
-                <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-primary/20 shrink-0">
-                  N
-                </div>
-
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-slate-900 font-display">
-                    Chat with our AI assistant
-                  </h3>
-                  <p className="text-slate-600 text-sm leading-relaxed max-w-md">
-                    Ask about chatbots, automation, voice agents, or pricing — our assistant in the bottom-right corner is ready 24/7.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
-                  {QUICK_ACTIONS.map(({ icon: Icon, label }) => (
-                    <button
-                      key={label}
-                      type="button"
-                      onClick={openLiveChat}
-                      className="flex items-center gap-2 px-3 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
-                    >
-                      <Icon className="w-3.5 h-3.5 text-primary shrink-0" />
-                      <span className="truncate">{label}</span>
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={openLiveChat}
-                  className="w-full max-w-sm h-11 bg-primary hover:bg-primary/95 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md border-none"
-                >
-                  <MessageSquare className="w-4 h-4" /> Open Live Chat
-                </button>
+              {/* Integrated Chat Window — embeds the live Nexubotics chatbot
+                  directly on the page instead of relying on the floating
+                  widget's open/close postMessage handshake. */}
+              <div className="liquid-glass rounded-3xl h-[600px] flex flex-col overflow-hidden relative">
+                <div className="absolute top-0 left-0 w-full h-1 bg-brand-gradient z-10" />
+                <iframe
+                  src="https://nexubotics-chatbot.vercel.app/?mode=embed"
+                  title="Nexubotics AI Support Chat"
+                  allow="clipboard-write"
+                  className="w-full h-full border-none bg-transparent"
+                />
               </div>
             </div>
 
