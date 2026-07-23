@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "motion/react";
-import { Mail, HelpCircle, CheckCircle2, MessageSquare, Send, User, Bot, X, Loader2, Phone, Clock, Sparkles, ShieldCheck, Settings, Tag, HeartHandshake } from "lucide-react";
+import { Mail, HelpCircle, CheckCircle2, MessageSquare, Send, Bot, Loader2, Phone, ShieldCheck, Settings, Tag, HeartHandshake } from "lucide-react";
 import useSEO from "../hooks/useSEO";
 import {
   Accordion,
@@ -16,16 +15,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { SUPPORT_EMAIL } from "@/constants";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
-
-// ------------------------------------------------------------------
-// Demo chatbot widget data (shared shape with Home.tsx)
-// ------------------------------------------------------------------
-type DemoMsg = {
-  sender: "bot" | "user";
-  text: string;
-  cta?: { label: string; to?: string };
-};
 
 const QUICK_ACTIONS = [
   { icon: Phone, label: "Book a Call", topic: "book" },
@@ -36,44 +25,7 @@ const QUICK_ACTIONS = [
   { icon: HeartHandshake, label: "Human Assistance", topic: "human" }
 ] as const;
 
-const TOPIC_REPLIES: Record<string, { text: string; cta?: { label: string; to?: string } }> = {
-  book: {
-    text: "Great choice! Let's find a time that works for you — our team will walk through your goals and map out a plan.",
-    cta: { label: "Open Booking Page →", to: "/book" }
-  },
-  chatbots: {
-    text: "Our AI Chatbots learn from your website or files to answer customer questions automatically, 24/7.",
-    cta: { label: "See Chatbot Details →", to: "/services/chatbots" }
-  },
-  automation: {
-    text: "We connect your favorite apps so information flows and actions trigger automatically — no manual copy-pasting.",
-    cta: { label: "See Automation Details →", to: "/services/workflows" }
-  },
-  agents: {
-    text: "Our Voice Agents talk like real people to welcome callers, book meetings, and qualify leads over the phone.",
-    cta: { label: "See Voice Agent Details →", to: "/services/voice-agents" }
-  },
-  pricing: {
-    text: "We offer flexible pricing across Standard, Plus, and Pro tiers, plus custom quotes for bigger builds.",
-    cta: { label: "View Pricing →", to: "/pricing" }
-  },
-  human: {
-    text: "Connecting you with a real person now — opening our live chat."
-  }
-};
-
 export default function Support() {
-  const [messages, setMessages] = useState<DemoMsg[]>([
-    {
-      sender: "bot",
-      text: "Hey! 👋 Welcome to Nexubotics. I can tell you about our AI Chatbots, Automation, Agents, and Pricing. Tap a button below to get started!"
-    }
-  ]);
-  const [chatInput, setChatInput] = useState("");
-  const [isChatLoading, setIsChatLoading] = useState(false);
-
-  const mainMessagesEndRef = useRef<HTMLDivElement>(null);
-
   // Form states for contact form
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
@@ -87,52 +39,9 @@ export default function Support() {
     keywords: "Nexubotics support, virtual AI assistant support, customer support chatbot, contact Nexubotics"
   });
 
-  const isFirstRender = useRef(true);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    mainMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isChatLoading]);
-
-  // Opens the REAL live chatbot (floating bottom-right on every page)
-  // instead of the FAQ-style assistant below.
+  // Opens the REAL live chatbot (floating bottom-right on every page).
   const openLiveChat = () => {
     window.dispatchEvent(new CustomEvent("nexubotics:open-chat"));
-  };
-
-  const handleQuickAction = (topic: string, label: string) => {
-    if (isChatLoading) return;
-    setMessages(prev => [...prev, { sender: "user", text: label }]);
-    setIsChatLoading(true);
-    setTimeout(() => {
-      setIsChatLoading(false);
-      if (topic === "human") {
-        openLiveChat();
-      }
-      const reply = TOPIC_REPLIES[topic];
-      setMessages(prev => [...prev, { sender: "bot", text: reply.text, cta: reply.cta ? { ...reply.cta } : undefined }]);
-    }, 900);
-  };
-
-  const handleChatSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const text = chatInput.trim();
-    if (!text || isChatLoading) return;
-
-    setMessages(prev => [...prev, { sender: "user", text }]);
-    setChatInput("");
-    setIsChatLoading(true);
-
-    setTimeout(() => {
-      setIsChatLoading(false);
-      setMessages(prev => [
-        ...prev,
-        { sender: "bot", text: "Thanks! Tap one of the buttons below for a detailed answer, or chat with our live support agent." }
-      ]);
-    }, 900);
   };
 
   const handleContactSubmit = async (e: React.FormEvent) => {
@@ -210,132 +119,46 @@ export default function Support() {
                   <span className="text-brand-gradient">Consoles.</span>
                 </h1>
                 <p className="text-slate-600 text-sm md:text-base leading-relaxed max-w-lg font-normal">
-                  Ask our FAQ assistant anything about the Nexubotics platform, workflows, integration capabilities, or custom deployment parameters.
+                  Ask our AI assistant anything about the Nexubotics platform, workflows, integration capabilities, or custom deployment parameters.
                 </p>
+              </div>
+
+              {/* Live chat promo card (replaces the old scripted demo chat) */}
+              <div className="rounded-3xl relative overflow-hidden bg-white border border-slate-200/60 shadow-xl p-8 md:p-10 flex flex-col items-center text-center gap-6">
+                <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-primary/20 shrink-0">
+                  N
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold text-slate-900 font-display">
+                    Chat with our AI assistant
+                  </h3>
+                  <p className="text-slate-600 text-sm leading-relaxed max-w-md">
+                    Ask about chatbots, automation, voice agents, or pricing — our assistant in the bottom-right corner is ready 24/7.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
+                  {QUICK_ACTIONS.map(({ icon: Icon, label }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={openLiveChat}
+                      className="flex items-center gap-2 px-3 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
+                    >
+                      <Icon className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span className="truncate">{label}</span>
+                    </button>
+                  ))}
+                </div>
+
                 <button
                   type="button"
                   onClick={openLiveChat}
-                  className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:underline cursor-pointer bg-transparent border-none p-0"
+                  className="w-full max-w-sm h-11 bg-primary hover:bg-primary/95 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md border-none"
                 >
-                  <MessageSquare className="w-3.5 h-3.5" /> Prefer a live agent? Open the live chat →
+                  <MessageSquare className="w-4 h-4" /> Open Live Chat
                 </button>
-              </div>
-
-              {/* Integrated Chat Window */}
-              <div className="rounded-3xl relative overflow-hidden flex flex-col h-125 sm:h-140 max-h-[75vh] w-full shadow-xl bg-white border border-slate-200/60">
-                {/* Header */}
-                <div className="bg-[#0b1c3d] px-5 py-4 flex items-center gap-3 shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
-                    N
-                  </div>
-                  <span className="font-bold text-white text-base">Nexubotics</span>
-                </div>
-
-                {/* Message thread — data-lenis-prevent + touchAction stop the page-level
-                    Lenis smooth-scroll from hijacking scroll events inside this box, so
-                    scrolling the chat only scrolls the chat, not the whole page. */}
-                <div
-                  data-lenis-prevent
-                  className="flex-1 min-h-0 p-5 overflow-y-auto overscroll-contain bg-slate-50/40"
-                  style={{ touchAction: "pan-y" }}
-                >
-                  <div className="space-y-4 pb-2">
-                    {messages.map((msg, i) => (
-                      <div key={i} className={`flex gap-2.5 ${msg.sender === "user" ? "flex-row-reverse" : ""}`}>
-                        {msg.sender === "bot" && (
-                          <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white font-bold text-[10px] shrink-0 mt-auto">
-                            N
-                          </div>
-                        )}
-                        <div
-                          className={`p-3.5 rounded-2xl text-xs leading-relaxed max-w-[80%] whitespace-pre-line shadow-sm text-left ${
-                            msg.sender === "bot"
-                              ? "bg-white border border-slate-100 text-slate-800 rounded-tl-none self-start"
-                              : "bg-primary text-white rounded-tr-none self-end"
-                          }`}
-                        >
-                          {msg.text}
-
-                          {msg.cta && (
-                            <Link
-                              to={msg.cta.to || "#"}
-                              className="mt-2.5 flex items-center justify-center gap-1.5 bg-slate-900 text-white p-2 rounded-lg text-[11px] font-bold hover:bg-slate-800 transition-colors"
-                            >
-                              {msg.cta.label}
-                            </Link>
-                          )}
-
-                          {msg.sender === "bot" && msg.text.includes(SUPPORT_EMAIL) && (
-                            <a
-                              href={`mailto:${SUPPORT_EMAIL}`}
-                              className="mt-3 flex items-center justify-center gap-2 bg-primary text-white p-2.5 rounded-lg text-xs font-bold hover:bg-primary/95 transition-colors shadow-md border-none cursor-pointer"
-                            >
-                              <Mail size={12} /> Send Email
-                            </a>
-                          )}
-
-                          {msg.sender === "bot" && msg.text.includes("WhatsApp") && (
-                            <a
-                              href="https://wa.me/917829527825"
-                              target="_blank"
-                              rel="noreferrer"
-                              className="mt-3 flex items-center justify-center gap-2 bg-green-500 text-white p-2.5 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors shadow-md border-none cursor-pointer"
-                            >
-                              <Phone size={12} /> Message WhatsApp
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-
-                    {isChatLoading && (
-                      <div className="flex gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white font-bold text-[10px] shrink-0">
-                          N
-                        </div>
-                        <div className="bg-white border border-slate-100 px-4 py-3 rounded-2xl rounded-tl-none text-xs text-slate-500 flex items-center gap-2 shadow-sm font-semibold">
-                          <Loader2 size={14} className="animate-spin text-primary" />
-                          Formulating answer...
-                        </div>
-                      </div>
-                    )}
-                    <div ref={mainMessagesEndRef} />
-                  </div>
-                </div>
-
-                {/* Quick actions */}
-                <div className="px-4 pt-3 pb-1 border-t border-slate-100 bg-white shrink-0">
-                  <div className="grid grid-cols-2 gap-2">
-                    {QUICK_ACTIONS.map(({ icon: Icon, label, topic }) => (
-                      <button
-                        key={topic}
-                        type="button"
-                        disabled={isChatLoading}
-                        onClick={() => handleQuickAction(topic, label)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-semibold text-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
-                      >
-                        <Icon className="w-3.5 h-3.5 text-primary shrink-0" />
-                        <span className="truncate">{label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Chat Form */}
-                <form onSubmit={handleChatSubmit} className="p-4 bg-white border-t border-slate-100 shrink-0">
-                  <div className="flex gap-2">
-                    <Input
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      disabled={isChatLoading}
-                      placeholder="Type your message..."
-                      className="h-11 bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 rounded-xl text-sm focus-visible:ring-primary focus-visible:border-primary/50"
-                    />
-                    <Button disabled={isChatLoading} size="icon" className="h-11 w-11 bg-primary hover:opacity-90 shrink-0 rounded-xl border-none cursor-pointer">
-                      <Send size={16} className="text-white" />
-                    </Button>
-                  </div>
-                </form>
               </div>
             </div>
 

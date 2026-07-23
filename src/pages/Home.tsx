@@ -86,14 +86,10 @@ function NeuralBackground() {
 }
 
 // ------------------------------------------------------------------
-// Demo chatbot widget data (shared shape with Support.tsx)
+// Quick action buttons shown on the "chat with our AI assistant" promo
+// card. Every action just opens the real live chat widget (see
+// ChatWidget.tsx) instead of faking a scripted conversation.
 // ------------------------------------------------------------------
-type DemoMsg = {
-  sender: "bot" | "user";
-  text: string;
-  cta?: { label: string; to?: string };
-};
-
 const QUICK_ACTIONS = [
   { icon: Phone, label: "Book a Call", topic: "book" },
   { icon: MessageSquare, label: "AI Chatbots", topic: "chatbots" },
@@ -102,32 +98,6 @@ const QUICK_ACTIONS = [
   { icon: Tag, label: "Pricing", topic: "pricing" },
   { icon: HeartHandshake, label: "Human Assistance", topic: "human" }
 ] as const;
-
-const TOPIC_REPLIES: Record<string, { text: string; cta?: { label: string; to?: string } }> = {
-  book: {
-    text: "Great choice! Let's find a time that works for you — our team will walk through your goals and map out a plan.",
-    cta: { label: "Open Booking Page →", to: "/book" }
-  },
-  chatbots: {
-    text: "Our AI Chatbots learn from your website or files to answer customer questions automatically, 24/7.",
-    cta: { label: "See Chatbot Details →", to: "/services/chatbots" }
-  },
-  automation: {
-    text: "We connect your favorite apps so information flows and actions trigger automatically — no manual copy-pasting.",
-    cta: { label: "See Automation Details →", to: "/services/workflows" }
-  },
-  agents: {
-    text: "Our Voice Agents talk like real people to welcome callers, book meetings, and qualify leads over the phone.",
-    cta: { label: "See Voice Agent Details →", to: "/services/voice-agents" }
-  },
-  pricing: {
-    text: "We offer flexible pricing across Standard, Plus, and Pro tiers, plus custom quotes for bigger builds.",
-    cta: { label: "View Pricing →", to: "/pricing" }
-  },
-  human: {
-    text: "Connecting you with a real person now — opening our live chat."
-  }
-};
 
 export default function Home() {
   useSEO({
@@ -161,51 +131,10 @@ export default function Home() {
     }, 6800);
   };
 
-  // ------------------------------------------------------------------
-  // Demo chatbot widget state/logic
-  // ------------------------------------------------------------------
-  const [messages, setMessages] = useState<DemoMsg[]>([
-    {
-      sender: "bot",
-      text: "Hey! 👋 Welcome to Nexubotics. I can tell you about our AI Chatbots, Automation, Agents, and Pricing. Tap a button below to get started!"
-    }
-  ]);
-  const [inputText, setInputText] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-
   // Opens the REAL live chatbot (the widget floating bottom-right on every
-  // page), instead of the scripted demo above.
+  // page).
   const openLiveChat = () => {
     window.dispatchEvent(new CustomEvent("nexubotics:open-chat"));
-  };
-
-  const handleQuickAction = (topic: string, label: string) => {
-    if (isTyping) return;
-    setMessages(prev => [...prev, { sender: "user", text: label }]);
-    setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
-      if (topic === "human") {
-        openLiveChat();
-      }
-      const reply = TOPIC_REPLIES[topic];
-      setMessages(prev => [...prev, { sender: "bot", text: reply.text, cta: reply.cta ? { ...reply.cta } : undefined }]);
-    }, 900);
-  };
-
-  const handleSendMessage = () => {
-    const text = inputText.trim();
-    if (!text || isTyping) return;
-    setMessages(prev => [...prev, { sender: "user", text }]);
-    setInputText("");
-    setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
-      setMessages(prev => [
-        ...prev,
-        { sender: "bot", text: "Thanks! For a detailed answer on that, tap one of the buttons below or chat with our live support agent." }
-      ]);
-    }, 900);
   };
 
   const FEATURES_DATA = [
@@ -298,7 +227,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Chatbot Demo Section */}
+      {/* Chat With Our AI Assistant Section (static promo card that opens
+          the real live chat widget instead of a scripted demo) */}
       <section className="py-20 px-6 max-w-7xl mx-auto border-b border-slate-200/50 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-5 space-y-6 text-left">
@@ -307,7 +237,7 @@ export default function Home() {
               <span className="text-brand-gradient">AI assistant.</span>
             </h2>
             <p className="text-slate-600 text-sm leading-relaxed font-normal">
-              Experience the speed, style, and intelligence of our chatbot interfaces instantly. Tap a quick-action button below or type your own question to test the agent response.
+              Experience the speed, style, and intelligence of our chatbot interfaces instantly. Open the live assistant in the bottom-right corner and ask it anything.
             </p>
           </div>
 
@@ -319,99 +249,41 @@ export default function Home() {
               transition={{ duration: 0.7, ease: "easeOut" }}
               className="max-w-100 w-full"
             >
-              <div className="rounded-3xl relative overflow-hidden flex flex-col h-125 sm:h-140 max-h-[75vh] w-full z-10 shadow-2xl bg-white border border-slate-200/60">
-                {/* Header */}
-                <div className="bg-[#0b1c3d] px-5 py-4 flex items-center gap-3 shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
-                    N
-                  </div>
-                  <span className="font-bold text-white text-base">Nexubotics</span>
+              <div className="rounded-3xl relative overflow-hidden bg-white border border-slate-200/60 shadow-2xl p-8 md:p-10 flex flex-col items-center text-center gap-6">
+                <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-primary/20 shrink-0">
+                  N
                 </div>
 
-                {/* Message thread — data-lenis-prevent + touchAction stop the page-level
-                    Lenis smooth-scroll from hijacking scroll events inside this box, so
-                    scrolling the chat only scrolls the chat, not the whole page. */}
-                <div
-                  data-lenis-prevent
-                  className="flex-1 overflow-y-auto overscroll-contain p-5 space-y-4 text-left flex flex-col min-h-0 bg-slate-50/40"
-                  style={{ touchAction: "pan-y" }}
-                >
-                  {messages.map((msg, i) => (
-                    <div key={i} className={`flex gap-2.5 ${msg.sender === "user" ? "flex-row-reverse" : ""}`}>
-                      {msg.sender === "bot" && (
-                        <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white font-bold text-[10px] shrink-0 mt-auto">
-                          N
-                        </div>
-                      )}
-                      <div
-                        className={`p-3.5 rounded-2xl text-xs leading-relaxed max-w-[80%] whitespace-pre-line shadow-sm transition-all duration-300 ${
-                          msg.sender === "bot"
-                            ? "bg-white border border-slate-100 text-slate-800 rounded-tl-none self-start"
-                            : "bg-primary text-white rounded-tr-none self-end"
-                        }`}
-                      >
-                        {msg.text}
-                        {msg.cta && (
-                          <Link
-                            to={msg.cta.to || "#"}
-                            className="mt-2.5 flex items-center justify-center gap-1.5 bg-slate-900 text-white p-2 rounded-lg text-[11px] font-bold hover:bg-slate-800 transition-colors"
-                          >
-                            {msg.cta.label}
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {isTyping && (
-                    <div className="bg-white border border-slate-100 rounded-2xl rounded-tl-none p-3.5 w-14 flex items-center justify-center gap-1.5 self-start shadow-sm">
-                      <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                    </div>
-                  )}
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold text-slate-900 font-display">
+                    Chat with our AI assistant
+                  </h3>
+                  <p className="text-slate-600 text-sm leading-relaxed">
+                    Ask about chatbots, automation, voice agents, or pricing.
+                  </p>
                 </div>
 
-                {/* Quick actions */}
-                <div className="px-4 pt-3 pb-1 border-t border-slate-100 bg-white shrink-0">
-                  <div className="grid grid-cols-2 gap-2">
-                    {QUICK_ACTIONS.map(({ icon: Icon, label, topic }) => (
-                      <button
-                        key={topic}
-                        type="button"
-                        disabled={isTyping}
-                        onClick={() => handleQuickAction(topic, label)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-semibold text-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
-                      >
-                        <Icon className="w-3.5 h-3.5 text-primary shrink-0" />
-                        <span className="truncate">{label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Input */}
-                <div className="p-4 bg-white border-t border-slate-100 shrink-0">
-                  <form
-                    onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
-                    className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-1.5"
-                  >
-                    <input
-                      type="text"
-                      value={inputText}
-                      onChange={(e) => setInputText(e.target.value)}
-                      disabled={isTyping}
-                      placeholder="Type your message..."
-                      className="flex-1 bg-transparent border-none text-xs outline-none px-2 py-1.5 text-slate-900 font-semibold"
-                    />
+                <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
+                  {QUICK_ACTIONS.map(({ icon: Icon, label }) => (
                     <button
-                      type="submit"
-                      disabled={isTyping}
-                      className="w-8 h-8 rounded-lg bg-primary hover:opacity-90 disabled:opacity-50 text-white flex items-center justify-center transition-all cursor-pointer border-none shrink-0"
+                      key={label}
+                      type="button"
+                      onClick={openLiveChat}
+                      className="flex items-center gap-2 px-3 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
                     >
-                      <Send className="w-3.5 h-3.5 text-white" />
+                      <Icon className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span className="truncate">{label}</span>
                     </button>
-                  </form>
+                  ))}
                 </div>
+
+                <button
+                  type="button"
+                  onClick={openLiveChat}
+                  className="w-full max-w-sm h-11 bg-primary hover:bg-primary/95 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md border-none"
+                >
+                  <Send className="w-4 h-4" /> Open Live Chat
+                </button>
               </div>
             </motion.div>
           </div>
