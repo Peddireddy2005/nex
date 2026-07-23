@@ -197,7 +197,7 @@ export default function Support() {
 
       {/* Main Grid Content */}
       <section className="relative pt-24 pb-20 px-6 max-w-7xl mx-auto">
-        <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute -top-25 left-1/2 -translate-x-1/2 w-175 h-87.5 bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
         <div className="relative z-10 space-y-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
@@ -222,7 +222,7 @@ export default function Support() {
               </div>
 
               {/* Integrated Chat Window */}
-              <div className="rounded-3xl relative overflow-hidden flex flex-col h-[500px] sm:h-[560px] max-h-[75vh] w-full shadow-xl bg-white border border-slate-200/60">
+              <div className="rounded-3xl relative overflow-hidden flex flex-col h-125 sm:h-140 max-h-[75vh] w-full shadow-xl bg-white border border-slate-200/60">
                 {/* Header */}
                 <div className="bg-[#0b1c3d] px-5 py-4 flex items-center gap-3 shrink-0">
                   <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
@@ -231,8 +231,14 @@ export default function Support() {
                   <span className="font-bold text-white text-base">Nexubotics</span>
                 </div>
 
-                {/* Message thread */}
-                <div className="flex-1 min-h-0 p-5 overflow-y-auto overscroll-contain bg-slate-50/40">
+                {/* Message thread — data-lenis-prevent + touchAction stop the page-level
+                    Lenis smooth-scroll from hijacking scroll events inside this box, so
+                    scrolling the chat only scrolls the chat, not the whole page. */}
+                <div
+                  data-lenis-prevent
+                  className="flex-1 min-h-0 p-5 overflow-y-auto overscroll-contain bg-slate-50/40"
+                  style={{ touchAction: "pan-y" }}
+                >
                   <div className="space-y-4 pb-2">
                     {messages.map((msg, i) => (
                       <div key={i} className={`flex gap-2.5 ${msg.sender === "user" ? "flex-row-reverse" : ""}`}>
@@ -260,7 +266,7 @@ export default function Support() {
                           )}
 
                           {msg.sender === "bot" && msg.text.includes(SUPPORT_EMAIL) && (
-                            
+                            <a
                               href={`mailto:${SUPPORT_EMAIL}`}
                               className="mt-3 flex items-center justify-center gap-2 bg-primary text-white p-2.5 rounded-lg text-xs font-bold hover:bg-primary/95 transition-colors shadow-md border-none cursor-pointer"
                             >
@@ -269,7 +275,7 @@ export default function Support() {
                           )}
 
                           {msg.sender === "bot" && msg.text.includes("WhatsApp") && (
-                            
+                            <a
                               href="https://wa.me/917829527825"
                               target="_blank"
                               rel="noreferrer"
@@ -342,18 +348,23 @@ export default function Support() {
                   <h2 className="text-2xl font-bold text-slate-900 font-display">FAQ / Guides</h2>
                </div>
 
-               <Accordion type="single" collapsible className="space-y-4">
-                 {FAQS.map((item, i) => (
-                   <AccordionItem key={i} value={`item-${i}`} className="border border-slate-200/50 bg-slate-50/80 rounded-xl px-5 overflow-hidden backdrop-blur-md">
-                     <AccordionTrigger className="text-left font-semibold text-slate-700 hover:text-slate-900 hover:no-underline py-4 text-sm font-display">
-                        {item.q}
-                     </AccordionTrigger>
-                     <AccordionContent className="text-slate-600 leading-relaxed pb-4 text-xs font-normal">
-                        {item.a}
+               <Accordion openMultiple={false} className="space-y-4">
+                  {FAQS.map((item, i) => (
+                  <AccordionItem
+                   key={i}
+                     value={`item-${i}`}
+                     className="border border-slate-200/50 bg-slate-50/80 rounded-xl px-5 overflow-hidden backdrop-blur-md"
+                  >
+                   <AccordionTrigger className="text-left font-semibold text-slate-700 hover:text-slate-900 hover:no-underline py-4 text-sm font-display">
+                    {item.q}
+                   </AccordionTrigger>
+
+                   <AccordionContent className="text-slate-600 leading-relaxed pb-4 text-xs font-normal">
+                       {item.a}
                      </AccordionContent>
-                   </AccordionItem>
+                  </AccordionItem>
                  ))}
-               </Accordion>
+                </Accordion>
 
                <div className="p-5 bg-slate-50 border border-slate-200/50 rounded-xl flex items-start gap-4 shadow-md backdrop-blur-md">
                   <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />

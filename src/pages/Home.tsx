@@ -236,9 +236,9 @@ export default function Home() {
 
       <NeuralBackground />
 
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/3 blur-[140px] pointer-events-none rounded-full" />
-      <div className="absolute top-[20%] right-1/4 w-[600px] h-[600px] bg-indigo-500/2 blur-[150px] pointer-events-none rounded-full" />
-      <div className="absolute bottom-[20%] left-1/3 w-[700px] h-[700px] bg-purple-500/2 blur-[160px] pointer-events-none rounded-full" />
+      <div className="absolute top-0 left-1/4 w-125 h-125 bg-primary/3 blur-[140px] pointer-events-none rounded-full" />
+      <div className="absolute top-[20%] right-1/4 w-150 h-150 bg-indigo-500/2 blur-[150px] pointer-events-none rounded-full" />
+      <div className="absolute bottom-[20%] left-1/3 w-175 h-175 bg-purple-500/2 blur-[160px] pointer-events-none rounded-full" />
 
       <Navbar />
 
@@ -253,7 +253,7 @@ export default function Home() {
             playsInline
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/40 to-background" />
+          <div className="absolute inset-0 bg-linear-to-b from-white/10 via-white/40 to-background" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,var(--color-background)_95%)]" />
         </div>
 
@@ -317,9 +317,9 @@ export default function Home() {
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.7, ease: "easeOut" }}
-              className="max-w-[400px] w-full"
+              className="max-w-100 w-full"
             >
-              <div className="rounded-[28px] relative overflow-hidden flex flex-col h-[480px] sm:h-[520px] max-h-[75vh] w-full z-10 shadow-2xl bg-white border border-slate-200/60">
+              <div className="rounded-3xl relative overflow-hidden flex flex-col h-125 sm:h-140 max-h-[75vh] w-full z-10 shadow-2xl bg-white border border-slate-200/60">
                 {/* Header */}
                 <div className="bg-[#0b1c3d] px-5 py-4 flex items-center gap-3 shrink-0">
                   <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
@@ -328,8 +328,14 @@ export default function Home() {
                   <span className="font-bold text-white text-base">Nexubotics</span>
                 </div>
 
-                {/* Message thread */}
-                <div className="flex-1 overflow-y-auto overscroll-contain p-5 space-y-4 text-left flex flex-col min-h-0 bg-slate-50/40">
+                {/* Message thread — data-lenis-prevent + touchAction stop the page-level
+                    Lenis smooth-scroll from hijacking scroll events inside this box, so
+                    scrolling the chat only scrolls the chat, not the whole page. */}
+                <div
+                  data-lenis-prevent
+                  className="flex-1 overflow-y-auto overscroll-contain p-5 space-y-4 text-left flex flex-col min-h-0 bg-slate-50/40"
+                  style={{ touchAction: "pan-y" }}
+                >
                   {messages.map((msg, i) => (
                     <div key={i} className={`flex gap-2.5 ${msg.sender === "user" ? "flex-row-reverse" : ""}`}>
                       {msg.sender === "bot" && (
@@ -428,7 +434,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.7, delay: idx * 0.15, ease: "easeOut" }}
-              className="bg-white border border-slate-200/60 rounded-3xl p-8 relative overflow-hidden flex flex-col justify-between min-h-[300px] shadow-sm hover:shadow-2xl hover:border-primary/20 transition-all duration-500 group cursor-pointer"
+              className="bg-white border border-slate-200/60 rounded-3xl p-8 relative overflow-hidden flex flex-col justify-between min-h-75 shadow-sm hover:shadow-2xl hover:border-primary/20 transition-all duration-500 group cursor-pointer"
             >
               <div className="absolute inset-0 bg-[url('/dashboard_bg.png')] bg-cover bg-center opacity-0 group-hover:opacity-[0.08] scale-105 group-hover:scale-100 transition-all duration-700 pointer-events-none" />
               <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -503,9 +509,9 @@ export default function Home() {
 
           <div className="lg:col-span-7">
             <div className="space-y-4 relative">
-              <div className="absolute left-[30px] top-6 bottom-6 w-[2px] bg-slate-100 -z-10" />
+              <div className="absolute left-7.5 top-6 bottom-6 w-0.5 bg-slate-100 -z-10" />
               <div
-                className="absolute left-[30px] top-6 w-[2px] bg-primary -z-10 transition-all duration-700"
+                className="absolute left-7.5 top-6 w-0.5 bg-primary -z-10 transition-all duration-700"
                 style={{ height: activeWorkflowNode === null ? "0%" : activeWorkflowNode === 0 ? "0%" : activeWorkflowNode === 1 ? "30%" : activeWorkflowNode === 2 ? "65%" : "100%" }}
               />
 
@@ -637,7 +643,7 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="lg:col-span-8 glass-card rounded-2xl p-6 md:p-8 shadow-2xl min-h-[240px] flex flex-col justify-between relative overflow-hidden backdrop-blur-lg">
+            <div className="lg:col-span-8 glass-card rounded-2xl p-6 md:p-8 shadow-2xl min-h-60 flex flex-col justify-between relative overflow-hidden backdrop-blur-lg">
               <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 blur-[80px] pointer-events-none" />
               {(() => {
                 const data = INDUSTRIES_DATA.find(i => i.id === activeIndustry)!;
