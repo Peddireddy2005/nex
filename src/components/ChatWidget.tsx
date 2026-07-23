@@ -1,13 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const CHATBOT_URL = "https://nexubotics-chatbot.vercel.app/";
 
 export default function ChatWidget() {
   const [expanded, setExpanded] = useState(false);
 
+  // While this timestamp is in the future, we ignore incoming
+  // "nexubotics-widget-state" messages from the iframe. Without this,
+  // the iframe's own initial/handshake message (often `{ open: false }`,
+  // sent right after it loads) can arrive a tick after we manually set
+  // expanded=true and immediately snap it back closed — which looks
+  // exactly like the button click did nothing.
+  const suppressUntilRef = useRef(0);
+
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
       if (e.data?.type === "nexubotics-widget-state") {
+        if (Date.now() < suppressUntilRef.current) return;
         setExpanded(e.data.open);
       }
     }
@@ -17,6 +26,9 @@ export default function ChatWidget() {
     // instead of using a separate fake/canned chat UI.
     function handleOpenRequest() {
       setExpanded(true);
+      // Give the iframe app a window to load / catch up before we start
+      // trusting its own reported state again.
+      suppressUntilRef.current = Date.now() + 1500;
       try {
         const iframe = document.querySelector<HTMLIFrameElement>(
           'iframe[title="Nexubotics Chat"]'
