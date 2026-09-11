@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Nexubotics | Autonomous AI Platform</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <!-- Warm up the connection to the embedded chatbot app early so the
+         iframe's first load / first reply isn't also paying for DNS+TLS
+         setup on top of the actual response time. -->
+    <link rel="preconnect" href="https://nexubotics-chatbot.vercel.app" crossorigin />
+    <link rel="dns-prefetch" href="https://nexubotics-chatbot.vercel.app" />
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

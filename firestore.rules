@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Profiles: Users can only read/write their own profile
+    match /profiles/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && request.resource.data.user_id == userId
+        && request.resource.data.keys().hasAll(['user_id', 'business_name', 'plan'])
+        && request.resource.data.business_name is string
+        && request.resource.data.business_name.size() <= 100;
+      allow update: if isOwner(userId)
+        && request.resource.data.user_id == userId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['business_name', 'website', 'industry', 'onboarding_complete']);
+    }
+
+    // Chatbots
+    match /chatbots/{botId} {
+      allow list: if isSignedIn() && resource.data.user_id == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.user_id == request.auth.uid;
+      allow create: if isSignedIn()
+        && request.resource.data.user_id == request.auth.uid
+        && request.resource.data.keys().hasAll(['user_id', 'name', 'website_url', 'status'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 100;
+      allow update: if isSignedIn()
+        && resource.data.user_id == request.auth.uid
+        && request.resource.data.user_id == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'website_url', 'status']);
+      allow delete: if isSignedIn() && resource.data.user_id == request.auth.uid;
+    }
+
+    // Voice Agents
+    match /voice_agents/{agentId} {
+      allow list: if isSignedIn() && resource.data.user_id == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.user_id == request.auth.uid;
+      allow create: if isSignedIn()
+        && request.resource.data.user_id == request.auth.uid
+        && request.resource.data.keys().hasAll(['user_id', 'name', 'prompt', 'voice_id', 'status'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 100;
+      allow update: if isSignedIn()
+        && resource.data.user_id == request.auth.uid
+        && request.resource.data.user_id == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'prompt', 'voice_id', 'phone_number', 'status']);
+      allow delete: if isSignedIn() && resource.data.user_id == request.auth.uid;
+    }
+
+    // Workflows
+    match /workflows/{workflowId} {
+      allow list: if isSignedIn() && resource.data.user_id == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.user_id == request.auth.uid;
+      allow create: if isSignedIn()
+        && request.resource.data.user_id == request.auth.uid
+        && request.resource.data.keys().hasAll(['user_id', 'name', 'trigger_type', 'action_type', 'is_active'])
+        && request.resource.data.name is string;
+      allow update: if isSignedIn()
+        && resource.data.user_id == request.auth.uid
+        && request.resource.data.user_id == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'trigger_type', 'action_type', 'is_active', 'config']);
+      allow delete: if isSignedIn() && resource.data.user_id == request.auth.uid;
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "profile": {
+      "title": "User Profile",
+      "description": "Business information for the authenticated user",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string" },
+        "business_name": { "type": "string" },
+        "website": { "type": "string" },
+        "industry": { "type": "string" },
+        "plan": { "type": "string", "enum": ["free", "pro", "enterprise"] },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["user_id", "business_name", "plan"]
+    },
+    "chatbot": {
+      "title": "Chatbot Agent",
+      "description": "AI chatbot configuration",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string" },
+        "name": { "type": "string" },
+        "website_url": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "training", "error"] },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["user_id", "name", "website_url", "status"]
+    },
+    "voice_agent": {
+      "title": "Voice Agent",
+      "description": "Autonomous audio receptionist configuration",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string" },
+        "name": { "type": "string" },
+        "prompt": { "type": "string" },
+        "voice_id": { "type": "string" },
+        "phone_number": { "type": "string" },
+        "status": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["user_id", "name", "prompt", "voice_id", "status"]
+    },
+    "workflow": {
+      "title": "Automation Workflow",
+      "description": "Logic propagation flow",
+      "type": "object",
+      "properties": {
+        "user_id": { "type": "string" },
+        "name": { "type": "string" },
+        "trigger_type": { "type": "string" },
+        "action_type": { "type": "string" },
+        "is_active": { "type": "boolean" },
+        "config": { "type": "object" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["user_id", "name", "trigger_type", "action_type", "is_active"]
+    }
+  },
+  "firestore": {
+    "/profiles/{profileId}": {
+      "schema": "profile",
+      "description": "Business profiles indexed by user ID"
+    },
+    "/chatbots/{chatbotId}": {
+      "schema": "chatbot",
+      "description": "Collection of AI chatbots"
+    },
+    "/voice_agents/{agentId}": {
+      "schema": "voice_agent",
+      "description": "Collection of voice agents"
+    },
+    "/workflows/{workflowId}": {
+      "schema": "workflow",
+      "description": "Collection of automation flows"
+    }
+  }
+}
